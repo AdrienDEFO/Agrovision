@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>AgroVision AI - Présentation Officielle</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/blood.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --r-main-color: #f8fafc;
+            --r-heading-color: #34d399;
+            --r-background-color: #064e3b;
+            --r-selection-background-color: #059669;
+        }
+        .reveal h1, .reveal h2, .reveal h3 {
+            text-transform: none;
+            font-weight: 900;
+            text-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .reveal .slides section {
+            text-align: left;
+            padding: 40px;
+        }
+        .reveal .slides section.center {
+            text-align: center;
+        }
+        .highlight { color: #10b981; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.07);
+            padding: 25px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .img-rounded {
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 4px solid rgba(255,255,255,0.1);
+        }
+        .term-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-size: 0.5em;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-right: 10px;
+        }
+        .bg-court { background: #f59e0b; color: #000; }
+        .bg-moyen { background: #10b981; color: #fff; }
+        .bg-long { background: #3b82f6; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Slide 1: Contexte et Problématique -->
+            <section data-background-image="https://images.unsplash.com/photo-1594498653385-d5172c532c00?auto=format&fit=crop&w=1500&q=80" data-background-opacity="0.25">
+                <div class="grid">
+                    <div>
+                        <h1 class="highlight">01. Contexte & Problématique</h1>
+                        <p>En Afrique, l'agriculture est le pilier de l'économie, mais elle fait face à des menaces invisibles :</p>
+                        <ul style="font-size: 0.8em;">
+                            <li class="fragment"><strong>Pertes de Récoltes :</strong> 30 à 40% des cultures détruites par des maladies non identifiées.</li>
+                            <li class="fragment"><strong>Manque d'Experts :</strong> Un agronome pour des milliers d'agriculteurs isolés.</li>
+                            <li class="fragment"><strong>Mauvaises Herbes :</strong> Identification difficile menant à l'usage abusif de produits chimiques.</li>
+                        </ul>
+                    </div>
+                    <img src="https://images.unsplash.com/photo-1590684302391-9e67a68396ec?auto=format&fit=crop&w=600&q=80" class="img-rounded">
+                </div>
+            </section>
+
+            <!-- Slide 2: Solution et Technologies -->
+            <section data-background-color="#022c22">
+                <h1 class="highlight">02. Solution & Tech</h1>
+                <div class="grid">
+                    <img src="https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=600&q=80" class="img-rounded">
+                    <div class="card">
+                        <h3>AgroVision AI</h3>
+                        <p style="font-size: 0.7em;">Une PWA intelligente qui met un agronome dans la poche de chaque paysan.</p>
+                        <ul style="font-size: 0.6em;">
+                            <li><span class="highlight">Gemini 3 Pro & Flash :</span> Analyse d'images haute précision pour maladies et adventices.</li>
+                            <li><span class="highlight">Expert Live Call :</span> Assistance vocale naturelle via Gemini Live API.</li>
+                            <li><span class="highlight">Géo-Contextualisation :</span> Couplage météo (Open-Meteo) et type de sol.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 3: Impacts (Court, Moyen, Long terme) -->
+            <section data-background-image="https://images.unsplash.com/photo-1523293836414-f04e712e1f3b?auto=format&fit=crop&w=1500&q=80" data-background-opacity="0.15">
+                <h1 class="highlight">03. Impact Multidimensionnel</h1>
+                <div class="space-y-4" style="font-size: 0.8em;">
+                    <div class="fragment fade-up card">
+                        <span class="term-badge bg-court">Court Terme</span>
+                        <strong>Diagnostic Immédiat :</strong> Identification des menaces en < 5 secondes sur le terrain.
+                    </div>
+                    <div class="fragment fade-up card" style="margin-top: 20px;">
+                        <span class="term-badge bg-moyen">Moyen Terme</span>
+                        <strong>Productivité :</strong> Augmentation des rendements de 20% par des soins ciblés et réduction des coûts chimiques.
+                    </div>
+                    <div class="fragment fade-up card" style="margin-top: 20px;">
+                        <span class="term-badge bg-long">Long Terme</span>
+                        <strong>Souveraineté Alimentaire :</strong> Création d'une base de données agronomique continentale pour une résilience climatique accrue.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 4: Difficultés & Perspectives -->
+            <section>
+                <h1 class="highlight">04. Défis & Horizons</h1>
+                <div class="grid">
+                    <div class="card">
+                        <h4 style="font-size: 0.8em;"><i class="fa-solid fa-stumbleupon"></i> Difficultés</h4>
+                        <ul style="font-size: 0.6em;">
+                            <li>Connectivité limitée en zone rurale (solution : mode PWA Offline).</li>
+                            <li>Diversité immense des espèces locales (nécessite un apprentissage continu).</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4 style="font-size: 0.8em;"><i class="fa-solid fa-rocket"></i> Perspectives</h4>
+                        <ul style="font-size: 0.6em;">
+                            <li>Support des <span class="highlight">Langues Locales</span> (Bambara, Wolof, Yoruba) par la voix.</li>
+                            <li>Intégration de capteurs IoT pour l'irrigation connectée.</li>
+                            <li>Partenariats avec les ministères de l'Agriculture.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 5: Vision Finale -->
+            <section class="center" data-background-gradient="linear-gradient(to bottom, #064e3b, #022c22)">
+                <div style="background: rgba(255,255,255,0.1); display: inline-block; padding: 40px; border-radius: 50%; margin-bottom: 30px;">
+                    <i class="fa-solid fa-leaf fa-4x highlight"></i>
+                </div>
+                <h1>AgroVision AI</h1>
+                <h3 style="font-style: italic; opacity: 0.8;">"L'Intelligence Artificielle au service de la terre mère."</h3>
+                <p style="margin-top: 50px; font-weight: 800;" class="highlight fragment pulse">MERCI POUR VOTRE ATTENTION</p>
+                <div style="font-size: 0.5em; opacity: 0.5; margin-top: 40px;">
+                    Projet AgroVision AI • Technologie Gemini • Innovation Afrique
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            center: true,
+            transition: 'zoom', // Zoom transition for a modern feel
+            backgroundTransition: 'fade',
+            autoPlayMedia: true
+        });
+    </script>
+</body>
+</html>

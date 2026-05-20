@@ -1,0 +1,10 @@
+{
+  "name": "AgroVision AI",
+  "description": "Une application PWA intelligente pour la détection des mauvaises herbes, l'identification des plantes et la collaboration communautaire agricole en Afrique.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}
