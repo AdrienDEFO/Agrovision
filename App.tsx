@@ -25,7 +25,13 @@ const AppContext = createContext<AppContextType | null>(null);
 export const useApp = () => useContext(AppContext)!;
 
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUserState] = useState<User | null>(() => StorageService.getUser());
+
+  const setUser = (newUser: User | null) => {
+    setUserState(newUser);
+    StorageService.saveUser(newUser);
+  };
+
   const [activeTab, setActiveTab] = useState<'scan' | 'community' | 'inbox' | 'ai' | 'settings' | 'history'>('scan');
   const [isAppLoading, setIsAppLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);

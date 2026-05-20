@@ -1,5 +1,5 @@
 
-import { HistoryItem, DraftItem, WeatherData } from "../types";
+import { HistoryItem, DraftItem, WeatherData, User } from "../types";
 
 export type StorageType = 'MySQL' | 'SQLite';
 
@@ -19,9 +19,27 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 const HISTORY_KEY = 'agrovision_history';
 const DRAFTS_KEY = 'agrovision_drafts';
+const USER_KEY = 'agrovision_user';
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export const StorageService = {
+  getUser: (): User | null => {
+    try {
+      const saved = localStorage.getItem(USER_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  saveUser: (user: User | null) => {
+    if (user) {
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(USER_KEY);
+    }
+  },
+
   getSettings: (): AppSettings => {
     const saved = localStorage.getItem('agrovision_settings');
     return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
