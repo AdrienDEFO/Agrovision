@@ -16,6 +16,10 @@ interface AppContextType {
   showToast: (message: string, type?: Toast['type']) => void;
   language: Language;
   setLanguage: (lang: Language) => void;
+  deferredPrompt: any;
+  showInstallBanner: boolean;
+  setShowInstallBanner: (show: boolean) => void;
+  installApp: () => void;
 }
 const AppContext = createContext<AppContextType | null>(null);
 export const useApp = () => useContext(AppContext)!;
@@ -26,6 +30,8 @@ const App: React.FC = () => {
   const [isAppLoading, setIsAppLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [language, setLanguage] = useState<Language>(StorageService.getSettings().language);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -39,6 +45,35 @@ const App: React.FC = () => {
     };
     init();
   }, []);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    window.addEventListener('appinstalled', () => {
+      setDeferredPrompt(null);
+      setShowInstallBanner(false);
+      showToast(language === 'FR' ? "AgroVision AI installé avec succès !" : "AgroVision AI installed successfully!", "success");
+    });
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, [language]);
+
+  const installApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to install: ${outcome}`);
+    setDeferredPrompt(null);
+    setShowInstallBanner(false);
+  };
 
   const showToast = (message: string, type: Toast['type'] = 'info') => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -61,7 +96,7 @@ const App: React.FC = () => {
   if (isAppLoading) return <LoadingScreen />;
 
   return (
-    <AppContext.Provider value={{ showToast, language, setLanguage }}>
+    <AppContext.Provider value={{ showToast, language, setLanguage, deferredPrompt, showInstallBanner, setShowInstallBanner, installApp }}>
       <div className="min-h-screen bg-slate-50 flex flex-col max-w-md mx-auto relative shadow-2xl border-x border-gray-200 overflow-hidden">
         
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs space-y-2 px-4 pointer-events-none">

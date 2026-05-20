@@ -1,0 +1,29 @@
+{
+  "name": "AgroVision AI",
+  "short_name": "AgroVision",
+  "description": "Une application PWA intelligente pour la détection des mauvaises herbes, l'identification des plantes et la collaboration communautaire agricole en Afrique.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#064e3b",
+  "theme_color": "#064e3b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=AgroVision",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=AgroVisionLogo",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "agriculture",
+    "productivity",
+    "education"
+  ]
+}

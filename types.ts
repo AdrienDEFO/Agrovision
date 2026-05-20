@@ -46,6 +46,14 @@ export interface HistoryItem extends PlantResult {
   timestamp: number;
 }
 
+export interface DraftItem {
+  id: string;
+  image: string;
+  weather?: WeatherData;
+  coords?: { lat: number; lng: number };
+  timestamp: number;
+}
+
 export interface ChatMessage {
   id: string;
   senderId: string;

@@ -1,5 +1,5 @@
 
-import { HistoryItem } from "../types";
+import { HistoryItem, DraftItem, WeatherData } from "../types";
 
 export type StorageType = 'MySQL' | 'SQLite';
 
@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 const HISTORY_KEY = 'agrovision_history';
+const DRAFTS_KEY = 'agrovision_drafts';
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export const StorageService = {
@@ -49,6 +50,34 @@ export const StorageService = {
 
   clearHistory: () => {
     localStorage.removeItem(HISTORY_KEY);
+  },
+
+  // Gestion des brouillons hors-ligne (Turbulences réseau)
+  getDrafts: (): DraftItem[] => {
+    const saved = localStorage.getItem(DRAFTS_KEY);
+    return saved ? JSON.parse(saved) : [];
+  },
+
+  addDraft: (draft: Omit<DraftItem, 'id' | 'timestamp'>) => {
+    const drafts = StorageService.getDrafts();
+    const newDraft: DraftItem = {
+      ...draft,
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now(),
+    };
+    const updatedDrafts = [newDraft, ...drafts];
+    localStorage.setItem(DRAFTS_KEY, JSON.stringify(updatedDrafts));
+    return newDraft;
+  },
+
+  deleteDraft: (id: string) => {
+    const drafts = StorageService.getDrafts();
+    const updatedDrafts = drafts.filter(d => d.id !== id);
+    localStorage.setItem(DRAFTS_KEY, JSON.stringify(updatedDrafts));
+  },
+
+  clearDrafts: () => {
+    localStorage.removeItem(DRAFTS_KEY);
   },
 
   // Purge automatique des données de plus de 30 jours
