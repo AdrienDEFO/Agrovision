@@ -1,10 +1,11 @@
 
-export type UserRole = 'ONG' | 'Agriculteur' | 'Ingénieur Agronome' | 'Particulier';
+export type UserRole = 'ONG' | 'Agriculteur' | 'Ingénieur Agronome' | 'Particulier' | 'Autres' | string;
 
 export interface User {
   id: string;
   name: string;
-  email: string;
+  email?: string;
+  city?: string;
   phone: string;
   role: UserRole;
   avatar: string;

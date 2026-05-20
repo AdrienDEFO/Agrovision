@@ -81,7 +81,15 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
           </button>
         </div>
         <h2 className="text-2xl font-black text-gray-900 mt-4 tracking-tight">{user.name}</h2>
-        <p className="text-emerald-600 font-black text-[10px] uppercase tracking-widest bg-emerald-50 inline-block px-3 py-1 rounded-full mt-1 border border-emerald-100">{user.role}</p>
+        <div className="flex flex-col items-center justify-center gap-1.5 mt-1.5">
+          <span className="text-emerald-600 font-black text-[10px] uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">{user.role}</span>
+          {user.city && (
+            <span className="text-gray-400 font-semibold text-xs flex items-center gap-1">
+              <i className="fa-solid fa-location-dot text-emerald-500 text-[10px]"></i>
+              {user.city}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="px-6 space-y-6">

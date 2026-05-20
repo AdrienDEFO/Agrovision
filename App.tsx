@@ -83,11 +83,11 @@ const App: React.FC = () => {
     }, 4000);
   };
 
-  const handleRegister = (data: { name: string, email: string, phone: string, role: UserRole }) => {
+  const handleRegister = (data: { name: string, phone: string, city: string, role: UserRole }) => {
     const newUser: User = {
       id: Math.random().toString(36).substr(2, 9),
       ...data,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.email}`,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(data.name)}`,
     };
     setUser(newUser);
     showToast(`Bienvenue ${data.name} !`, "success");
