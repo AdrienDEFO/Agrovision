@@ -47,6 +47,7 @@ async function executeWithFallback(params: Omit<GenerateContentParameters, 'mode
   const models = [
     'gemini-3.5-flash',
     'gemini-3.1-flash-lite',
+    'gemini-flash-latest',
     'gemini-3-flash-preview',
     'gemini-3-pro-preview'
   ];
@@ -107,32 +108,58 @@ export const identifyPlant = async (
             En plus de l'identification, déduis le TYPE DE SOL probable d'après l'image et le contexte météo/géo.
             
             IMPORTANT DIRECTIVE : Sois extrêmement tolérant quant à la netteté de la photo. Donne TOUJOURS une réponse constructive.
-            Rends tous tes textes d'explication courts, directs, sans fioritures pour que l'analyse soit ultra-rapide (inférieur à 2 secondes). Va droit au but.
-            
-            Structure JSON :
-            {
-              "commonName": "Nom court",
-              "africanNames": ["nom local"],
-              "scientificName": "Nom latin",
-              "isWeed": boolean,
-              "isDisease": boolean,
-              "diseaseSymptoms": "Symptômes concis",
-              "benefits": "Bienfaits synthétiques en 1 phrase",
-              "drawbacks": "Inconvénients en 1 phrase",
-              "soilType": "Type de sol détecté",
-              "healthImpact": {"advantages": "Avantage concis", "disadvantages": "Précaution concise"},
-              "eradicationMethod": {"biological": "Lutte biologique en 1 phrase", "mechanical": "Lutte mécanique en 1 phrase", "chemical": "Lutte chimique en 1 phrase"},
-              "description": "Analyse rapide du plant en 2 courtes phrases."
-            }`
+            Rends tous tes textes d'explication courts, directs, sans fioritures pour que l'analyse soit ultra-rapide (inférieur à 2 secondes). Va droit au but.`
           }
         ]
       },
-      config: { responseMimeType: "application/json" }
+      config: { 
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            commonName: { type: Type.STRING },
+            africanNames: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            },
+            scientificName: { type: Type.STRING },
+            isWeed: { type: Type.BOOLEAN },
+            isDisease: { type: Type.BOOLEAN },
+            diseaseSymptoms: { type: Type.STRING },
+            benefits: { type: Type.STRING },
+            drawbacks: { type: Type.STRING },
+            soilType: { type: Type.STRING },
+            healthImpact: {
+              type: Type.OBJECT,
+              properties: {
+                advantages: { type: Type.STRING },
+                disadvantages: { type: Type.STRING }
+              }
+            },
+            eradicationMethod: {
+              type: Type.OBJECT,
+              properties: {
+                biological: { type: Type.STRING },
+                mechanical: { type: Type.STRING },
+                chemical: { type: Type.STRING }
+              }
+            },
+            description: { type: Type.STRING }
+          }
+        }
+      }
     });
 
     const text = response.text;
     if (!text) throw new Error("Réponse vide de l'IA");
-    return JSON.parse(text) as PlantResult;
+    
+    let cleaned = text.trim();
+    if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, "");
+      cleaned = cleaned.replace(/\s*```$/i, "");
+    }
+    
+    return JSON.parse(cleaned.trim()) as PlantResult;
   } catch (error) {
     console.error("AI Error:", error);
     throw error;
