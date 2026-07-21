@@ -106,22 +106,23 @@ export const identifyPlant = async (
           { text: `Analyse cette image avec une précision d'expert agronome. ${contextText}
             En plus de l'identification, déduis le TYPE DE SOL probable d'après l'image et le contexte météo/géo.
             
-            IMPORTANT DIRECTIVE : Sois extrêmement tolérant quant à la netteté, l'exposition ou le cadrage de la photo (flou, herbe coupée, mauvaise mise au point, etc.). En tant qu'expert bienveillant engagé pour la souveraineté alimentaire en Afrique, tu dois TOUJOURS faire de ton mieux pour identifier le plant, la mauvaise herbe ou l'adventice en analysant de petits détails (feuilles, tiges, ombre, sol) plutôt que de refuser l'analyse ou de dire que l'image n'est pas nette ou inutilisable. Donne TOUJOURS une réponse de diagnostic constructive avec une estimation intelligente.
+            IMPORTANT DIRECTIVE : Sois extrêmement tolérant quant à la netteté de la photo. Donne TOUJOURS une réponse constructive.
+            Rends tous tes textes d'explication courts, directs, sans fioritures pour que l'analyse soit ultra-rapide (inférieur à 2 secondes). Va droit au but.
             
             Structure JSON :
             {
-              "commonName": "Nom",
-              "africanNames": ["nom1"],
+              "commonName": "Nom court",
+              "africanNames": ["nom local"],
               "scientificName": "Nom latin",
               "isWeed": boolean,
               "isDisease": boolean,
-              "diseaseSymptoms": "si applicable",
-              "benefits": "Description riche",
-              "drawbacks": "Inconvénients",
-              "soilType": "Type de sol détecté (ex: Sablonneux, Latéritique, etc.)",
-              "healthImpact": {"advantages": "...", "disadvantages": "..."},
-              "eradicationMethod": {"biological": "...", "mechanical": "...", "chemical": "..."},
-              "description": "..."
+              "diseaseSymptoms": "Symptômes concis",
+              "benefits": "Bienfaits synthétiques en 1 phrase",
+              "drawbacks": "Inconvénients en 1 phrase",
+              "soilType": "Type de sol détecté",
+              "healthImpact": {"advantages": "Avantage concis", "disadvantages": "Précaution concise"},
+              "eradicationMethod": {"biological": "Lutte biologique en 1 phrase", "mechanical": "Lutte mécanique en 1 phrase", "chemical": "Lutte chimique en 1 phrase"},
+              "description": "Analyse rapide du plant en 2 courtes phrases."
             }`
           }
         ]

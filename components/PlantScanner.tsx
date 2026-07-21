@@ -10,6 +10,7 @@ const MAX_SIZE_MB = 10;
 const PlantScanner: React.FC = () => {
   const { showToast, language, showInstallBanner, setShowInstallBanner, installApp } = useApp();
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [image, setImage] = useState<string | null>(null);
   const [result, setResult] = useState<PlantResult | null>(null);
   const [weather, setWeather] = useState<WeatherData | undefined>();
@@ -82,6 +83,17 @@ const PlantScanner: React.FC = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, [language]);
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingStep(prev => (prev + 1) % 5);
+    }, 700);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -388,12 +400,25 @@ const PlantScanner: React.FC = () => {
           <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white group">
             <img src={image} className="w-full h-80 object-cover" alt="Scan" />
             {loading && (
-              <div className="absolute inset-0 bg-emerald-900/80 backdrop-blur-sm flex flex-col items-center justify-center text-white p-8">
+              <div className="absolute inset-0 bg-emerald-900/85 backdrop-blur-sm flex flex-col items-center justify-center text-white p-8">
                 <div className="w-16 h-16 border-4 border-emerald-400/20 border-t-emerald-400 rounded-full animate-spin mb-6"></div>
-                <h3 className="text-xl font-black uppercase tracking-widest italic">Fusion des Données...</h3>
-                <div className="flex gap-2 mt-4">
-                   <div className="px-3 py-1 bg-white/10 rounded-full text-[8px] font-bold uppercase tracking-widest">Géo-Localisation</div>
-                   <div className="px-3 py-1 bg-white/10 rounded-full text-[8px] font-bold uppercase tracking-widest">Climat Actuel</div>
+                <h3 className="text-sm font-black uppercase tracking-widest italic text-center min-h-[1.5rem]">
+                  {loadingStep === 0 && (language === 'FR' ? "📡 Capture du Spectre..." : "📡 Spectral Capture...")}
+                  {loadingStep === 1 && (language === 'FR' ? "🔬 Analyse des Pigments..." : "🔬 Pigment Analysis...")}
+                  {loadingStep === 2 && (language === 'FR' ? "🌍 Corrélation Géo-Climatique..." : "🌍 Geo-Climatology Match...")}
+                  {loadingStep === 3 && (language === 'FR' ? "🧠 Consultation Experts IA..." : "🧠 Querying AI Experts...")}
+                  {loadingStep === 4 && (language === 'FR' ? "📝 Rédaction du Diagnostic..." : "📝 Final Diagnostic Report...")}
+                </h3>
+                <p className="text-[9px] text-emerald-300 font-black uppercase tracking-widest mt-2 animate-pulse">
+                  {language === 'FR' ? "Analyse accélérée active ⚡" : "Accelerated analysis active ⚡"}
+                </p>
+                <div className="flex gap-2 mt-6">
+                   <div className="px-3 py-1 bg-white/10 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
+                     <i className="fa-solid fa-circle-check text-emerald-400"></i> Géo-Localisation
+                   </div>
+                   <div className="px-3 py-1 bg-white/10 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
+                     <i className="fa-solid fa-circle-check text-emerald-400"></i> Climat Actuel
+                   </div>
                 </div>
               </div>
             )}
