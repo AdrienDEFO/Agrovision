@@ -95,21 +95,68 @@ const PlantScanner: React.FC = () => {
     return () => clearInterval(interval);
   }, [loading]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        showToast(`Image trop lourde ! Limite : ${MAX_SIZE_MB}Mo`, "error");
-        return;
-      }
+  const compressImage = (file: File, maxWidth: number = 1000, quality: number = 0.8): Promise<{ base64: string, dataUrl: string }> => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = (reader.result as string).split(',')[1];
-        setImage(reader.result as string);
-        setRawBase64(base64);
-        processImage(base64, reader.result as string);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve({
+              base64: (event.target?.result as string).split(',')[1],
+              dataUrl: event.target?.result as string
+            });
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          const base64 = dataUrl.split(',')[1];
+          resolve({ base64, dataUrl });
+        };
+        img.onerror = () => {
+          resolve({
+            base64: (event.target?.result as string).split(',')[1],
+            dataUrl: event.target?.result as string
+          });
+        };
+      };
+      reader.onerror = () => {
+        reject(new Error("Erreur lors de la lecture du fichier"));
       };
       reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLoading(true);
+      try {
+        const { base64, dataUrl } = await compressImage(file);
+        setImage(dataUrl);
+        setRawBase64(base64);
+        await processImage(base64, dataUrl);
+      } catch (err) {
+        console.error("Compression error:", err);
+        showToast("Erreur lors du traitement de l'image.", "error");
+        setLoading(false);
+      }
     }
   };
 
