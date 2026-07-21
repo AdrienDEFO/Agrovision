@@ -19,7 +19,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     customRole: ''
   });
 
-  const roles = ['Agriculteur', 'Ingénieur Agronome', 'ONG', 'Particulier', 'Autres'] as const;
+  const roles = ['Cultivateur', 'Ingénieur Agronome', 'Investisseur', 'ONG', 'Vendeur', 'Autres'] as const;
 
   const handleConnect = () => {
     const savedUser = StorageService.getSavedUser();

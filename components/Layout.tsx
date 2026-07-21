@@ -45,6 +45,17 @@ const Layout: React.FC<LayoutProps> = ({ user, activeTab, setActiveTab, children
         </div>
         <div className="flex items-center gap-2.5">
           <button 
+            onClick={() => setActiveTab('history')}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer active:scale-90 border ${
+              activeTab === 'history' 
+                ? 'bg-white text-emerald-800 border-white shadow-md' 
+                : 'bg-emerald-600/50 hover:bg-emerald-600 border-emerald-500/30 text-white'
+            }`}
+            title={language === 'FR' ? "Historique" : "History"}
+          >
+            <i className="fa-solid fa-clock-rotate-left text-xs"></i>
+          </button>
+          <button 
             onClick={() => setIsVoiceOpen(true)}
             className="w-8 h-8 rounded-full bg-emerald-600/50 hover:bg-emerald-600 border border-emerald-500/30 flex items-center justify-center transition-all cursor-pointer active:scale-90"
             title={language === 'FR' ? "Commande vocale" : "Voice commands"}

@@ -17,12 +17,28 @@ const CommunityChat: React.FC<CommunityChatProps> = ({ user }) => {
     { id: '1', name: 'Dr. Keita', email: 'keita@univ.ml', phone: '+22370001122', role: 'Ingénieur Agronome' as UserRole },
     { id: '2', name: 'Amadou Cissé', email: 'amadou@ferme.gn', phone: '+22460012345', role: 'Agriculteur' as UserRole },
     { id: '3', name: 'ONG Sahel Vert', email: 'contact@sahelvert.org', phone: '+22720202020', role: 'ONG' as UserRole },
+    { id: 'cm_mbarga', name: 'Prof. Jean-Pierre Mbarga', email: 'jp.mbarga@agro.cm', phone: '+237699112233', role: 'Ingénieur Agronome' as UserRole },
+    { id: 'cm_ndip', name: 'Florence Ndip', email: 'florence@ferme-ndip.cm', phone: '+237677445566', role: 'Cultivateur' as UserRole },
+    { id: 'cm_fosto', name: 'Dieudonné Fosto', email: 'fosto@intrants-cameroun.com', phone: '+237655889900', role: 'Vendeur' as UserRole },
+    { id: 'cm_saphir', name: 'GIC Saphir Cameroun', email: 'contact@saphircam.org', phone: '+237622334455', role: 'ONG' as UserRole },
+    { id: 'cm_talla', name: 'Emmanuel Talla', email: 'e.talla@invest-agri.cm', phone: '+237688778899', role: 'Investisseur' as UserRole },
   ];
+
+  const getSenderContact = (senderId: string, senderName: string) => {
+    const contact = mockUsers.find(u => u.id === senderId || u.name === senderName);
+    if (!contact && senderId === user.id) {
+      return { email: user.email || 'mon.email@agrovision.ai', phone: user.phone };
+    }
+    return contact;
+  };
 
   useEffect(() => {
     setMessages([
       { id: '1', senderId: 'bot', senderName: 'Système', senderRole: 'Particulier', text: 'Bienvenue dans la communauté AgroVision ! Échangez vos connaissances ici.', timestamp: Date.now() - 3600000 },
-      { id: '2', senderId: 'agro1', senderName: 'Dr. Keita', senderRole: 'Ingénieur Agronome', text: 'Attention, des chenilles légionnaires ont été aperçues près de Sikasso.', timestamp: Date.now() - 1800000 }
+      { id: '2', senderId: 'agro1', senderName: 'Dr. Keita', senderRole: 'Ingénieur Agronome', text: 'Attention, des chenilles légionnaires ont été aperçues près de Sikasso.', timestamp: Date.now() - 1800000 },
+      { id: '3', senderId: 'cm_mbarga', senderName: 'Prof. Jean-Pierre Mbarga', senderRole: 'Ingénieur Agronome', text: 'Pour les sols ferrallitiques de l\'Ouest du Cameroun (pH ~5.2), je conseille un amendement calcaire (dolomie/chaux) pour remonter le pH avant de planter.', timestamp: Date.now() - 900000 },
+      { id: '4', senderId: 'cm_ndip', senderName: 'Florence Ndip', senderRole: 'Cultivateur', text: 'Bonjour les amis ! Est-ce que quelqu\'un à Foumbot fait la culture sous serre pour la tomate ? Nos rendements s\'améliorent nettement.', timestamp: Date.now() - 600000 },
+      { id: '5', senderId: 'cm_fosto', senderName: 'Dieudonné Fosto', senderRole: 'Vendeur', text: 'Arrivage de pulvérisateurs et semences améliorées de maïs à Douala et Yaoundé. Me contacter pour les prix.', timestamp: Date.now() - 300000 }
     ]);
   }, []);
 
@@ -111,6 +127,47 @@ const CommunityChat: React.FC<CommunityChatProps> = ({ user }) => {
               }`}>
                 {m.text}
               </div>
+              
+              {/* Call or Email action buttons directly below the response message */}
+              {m.senderId !== 'bot' && (() => {
+                const contact = getSenderContact(m.senderId, m.senderName);
+                if (contact) {
+                  return (
+                    <div className={`flex gap-1.5 mt-1.5 ${m.senderId === user.id ? 'justify-end' : 'justify-start'}`}>
+                      {contact.phone && (
+                        <a
+                          href={`tel:${contact.phone}`}
+                          className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border transition-all active:scale-95 ${
+                            m.senderId === user.id
+                              ? 'bg-emerald-700/40 text-emerald-100 border-emerald-500/30 hover:bg-emerald-700/60'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
+                          }`}
+                          title={`Appeler ${contact.name}`}
+                        >
+                          <i className="fa-solid fa-phone text-[8px]"></i>
+                          <span>Appeler</span>
+                        </a>
+                      )}
+                      {contact.email && (
+                        <a
+                          href={`mailto:${contact.email}`}
+                          className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border transition-all active:scale-95 ${
+                            m.senderId === user.id
+                              ? 'bg-emerald-700/40 text-emerald-100 border-emerald-500/30 hover:bg-emerald-700/60'
+                              : 'bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100'
+                          }`}
+                          title={`Emailer ${contact.name}`}
+                        >
+                          <i className="fa-solid fa-envelope text-[8px]"></i>
+                          <span>E-mail</span>
+                        </a>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <span className="text-[8px] text-gray-400 mt-1 font-medium">{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
