@@ -95,7 +95,7 @@ const PlantScanner: React.FC = () => {
     return () => clearInterval(interval);
   }, [loading]);
 
-  const compressImage = (file: File, maxWidth: number = 1000, quality: number = 0.8): Promise<{ base64: string, dataUrl: string }> => {
+  const compressImage = (file: File, maxWidth: number = 600, quality: number = 0.65): Promise<{ base64: string, dataUrl: string }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (event) => {

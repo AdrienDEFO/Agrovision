@@ -80,6 +80,8 @@ const History: React.FC = () => {
             .card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; }
             .card h5 { margin: 0 0 5px 0; color: #047857; font-size: 12px; text-transform: uppercase; }
             .footer { margin-top: 50px; font-size: 10px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+            .plant-img { text-align: center; margin-bottom: 25px; }
+            .plant-img img { max-width: 100%; max-height: 250px; object-fit: cover; border-radius: 16px; border: 2px solid #047857; }
           </style>
         </head>
         <body>
@@ -87,6 +89,11 @@ const History: React.FC = () => {
             <div class="logo">AgroVision AI</div>
             <div class="badge">${type}</div>
           </div>
+          
+          <div class="plant-img">
+            <img src="${item.image}" alt="${item.commonName}" />
+          </div>
+
           <h1>${item.commonName}</h1>
           <div class="scientific">${item.scientificName}</div>
           
@@ -134,139 +141,183 @@ const History: React.FC = () => {
   };
 
   const exportToPNG = (item: HistoryItem) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 600;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    const grad = ctx.createLinearGradient(0, 0, 0, 600);
-    grad.addColorStop(0, '#064e3b');
-    grad.addColorStop(1, '#022c22');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 800, 600);
-    
-    ctx.strokeStyle = '#34d399';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(20, 20, 760, 560);
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.fillText('AGROVISION AI', 50, 70);
-    
-    ctx.fillStyle = '#34d399';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.fillText('RAPPORT DE DIAGNOSTIC AGRONOMIQUE', 50, 95);
-    
-    const badgeColor = item.isDisease ? '#ef4444' : item.isWeed ? '#f59e0b' : '#10b981';
-    ctx.fillStyle = badgeColor;
-    ctx.beginPath();
-    ctx.roundRect(530, 50, 220, 35, 10);
-    ctx.fill();
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.textAlign = 'center';
-    const typeLabel = item.isDisease ? 'MALADIE DETECTEE' : item.isWeed ? 'HERBE DETECTEE' : 'PLANTE SAINE';
-    ctx.fillText(typeLabel, 640, 72);
-    ctx.textAlign = 'left';
-    
-    ctx.strokeStyle = 'rgba(52, 211, 153, 0.2)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(50, 120);
-    ctx.lineTo(750, 120);
-    ctx.stroke();
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 36px sans-serif';
-    ctx.fillText(item.commonName.toUpperCase(), 50, 175);
-    
-    ctx.fillStyle = '#10b981';
-    ctx.font = 'italic 20px sans-serif';
-    ctx.fillText(item.scientificName, 50, 210);
-    
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '14px sans-serif';
-    const dateStr = new Date(item.timestamp).toLocaleDateString('fr-FR');
-    ctx.fillText(`Date: ${dateStr}`, 50, 250);
-    ctx.fillText(`Sol: ${item.soilType}`, 250, 250);
-    
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = '14px sans-serif';
-    const descText = item.description;
-    const words = descText.split(' ');
-    let line = '';
-    let y = 300;
-    const maxWidth = 700;
-    const lineHeight = 22;
-    
-    for (let n = 0; n < words.length; n++) {
-      let testLine = line + words[n] + ' ';
-      let metrics = ctx.measureText(testLine);
-      let testWidth = metrics.width;
-      if (testWidth > maxWidth && n > 0) {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = item.image;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 700;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      const grad = ctx.createLinearGradient(0, 0, 0, 700);
+      grad.addColorStop(0, '#064e3b');
+      grad.addColorStop(1, '#022c22');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 800, 700);
+      
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(20, 20, 760, 660);
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.fillText('AGROVISION AI', 50, 70);
+      
+      ctx.fillStyle = '#34d399';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('RAPPORT DE DIAGNOSTIC AGRONOMIQUE', 50, 95);
+      
+      const badgeColor = item.isDisease ? '#ef4444' : item.isWeed ? '#f59e0b' : '#10b981';
+      ctx.fillStyle = badgeColor;
+      ctx.beginPath();
+      ctx.roundRect(530, 50, 220, 35, 10);
+      ctx.fill();
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      const typeLabel = item.isDisease ? 'MALADIE DETECTEE' : item.isWeed ? 'HERBE DETECTEE' : 'PLANTE SAINE';
+      ctx.fillText(typeLabel, 640, 72);
+      ctx.textAlign = 'left';
+      
+      ctx.strokeStyle = 'rgba(52, 211, 153, 0.2)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(50, 120);
+      ctx.lineTo(750, 120);
+      ctx.stroke();
+      
+      // Draw plant photo nicely on the right side
+      try {
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(500, 145, 250, 180, 12);
+        ctx.clip();
+        ctx.drawImage(img, 500, 145, 250, 180);
+        ctx.restore();
+        
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(500, 145, 250, 180, 12);
+        ctx.stroke();
+      } catch (e) {
+        console.error("Failed to draw image in PNG export", e);
+      }
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillText(item.commonName.toUpperCase(), 50, 175);
+      
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'italic 18px sans-serif';
+      ctx.fillText(item.scientificName, 50, 210);
+      
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '14px sans-serif';
+      const dateStr = new Date(item.timestamp).toLocaleDateString('fr-FR');
+      ctx.fillText(`Date: ${dateStr}`, 50, 250);
+      ctx.fillText(`Sol: ${item.soilType}`, 250, 250);
+      
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '14px sans-serif';
+      const descText = item.description;
+      const words = descText.split(' ');
+      let line = '';
+      let y = 300;
+      const maxWidth = 420; // safe margin to avoid overlapping with the image on the right
+      const lineHeight = 22;
+      
+      for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + ' ';
+        let metrics = ctx.measureText(testLine);
+        let testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+          ctx.fillText(line, 50, y);
+          line = words[n] + ' ';
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+        if (y > 420) {
+          ctx.fillText(line + '...', 50, y);
+          line = '';
+          break;
+        }
+      }
+      if (line !== '') {
         ctx.fillText(line, 50, y);
-        line = words[n] + ' ';
-        y += lineHeight;
-      } else {
-        line = testLine;
       }
-      if (y > 380) {
-        ctx.fillText(line + '...', 50, y);
-        line = '';
-        break;
+      
+      ctx.strokeStyle = 'rgba(52, 211, 153, 0.2)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(50, 450);
+      ctx.lineTo(750, 450);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#34d399';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText('RECOMMANDATIONS DE LUTTE : ', 50, 480);
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '13px sans-serif';
+      const treatText = `Lutte biologique: ${item.eradicationMethod.biological} | Lutte mécanique: ${item.eradicationMethod.mechanical} | Lutte chimique: ${item.eradicationMethod.chemical}`;
+      const treatWords = treatText.split(' ');
+      let treatLine = '';
+      let treatY = 510;
+      const fullWidth = 700;
+      for (let n = 0; n < treatWords.length; n++) {
+        let testLine = treatLine + treatWords[n] + ' ';
+        let metrics = ctx.measureText(testLine);
+        let testWidth = metrics.width;
+        if (testWidth > fullWidth && n > 0) {
+          ctx.fillText(treatLine, 50, treatY);
+          treatLine = treatWords[n] + ' ';
+          treatY += 20;
+        } else {
+          treatLine = testLine;
+        }
+        if (treatY > 640) {
+          ctx.fillText(treatLine + '...', 50, treatY);
+          treatLine = '';
+          break;
+        }
       }
-    }
-    if (line !== '') {
-      ctx.fillText(line, 50, y);
-    }
-    
-    ctx.strokeStyle = 'rgba(52, 211, 153, 0.2)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(50, 420);
-    ctx.lineTo(750, 420);
-    ctx.stroke();
-    
-    ctx.fillStyle = '#34d399';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillText('RECOMMANDATIONS DE LUTTE : ', 50, 450);
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '13px sans-serif';
-    const treatText = `Lutte biologique: ${item.eradicationMethod.biological}`;
-    const treatWords = treatText.split(' ');
-    let treatLine = '';
-    let treatY = 480;
-    for (let n = 0; n < treatWords.length; n++) {
-      let testLine = treatLine + treatWords[n] + ' ';
-      let metrics = ctx.measureText(testLine);
-      let testWidth = metrics.width;
-      if (testWidth > maxWidth && n > 0) {
+      if (treatLine !== '') {
         ctx.fillText(treatLine, 50, treatY);
-        treatLine = treatWords[n] + ' ';
-        treatY += 18;
-      } else {
-        treatLine = testLine;
       }
-      if (treatY > 540) {
-        ctx.fillText(treatLine + '...', 50, treatY);
-        treatLine = '';
-        break;
-      }
-    }
-    if (treatLine !== '') {
-      ctx.fillText(treatLine, 50, treatY);
-    }
-    
-    const imgURL = canvas.toDataURL('image/png');
-    const link = document.createElement("a");
-    link.setAttribute("href", imgURL);
-    link.setAttribute("download", `AgroVision_Rapport_${item.commonName.replace(/\s+/g, '_')}.png`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      
+      const imgURL = canvas.toDataURL('image/png');
+      const link = document.createElement("a");
+      link.setAttribute("href", imgURL);
+      link.setAttribute("download", `AgroVision_Rapport_${item.commonName.replace(/\s+/g, '_')}.png`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+    img.onerror = () => {
+      // Fallback
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 600;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.fillStyle = '#064e3b';
+      ctx.fillRect(0, 0, 800, 600);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.fillText('AGROVISION AI - ' + item.commonName, 50, 70);
+      const imgURL = canvas.toDataURL('image/png');
+      const link = document.createElement("a");
+      link.setAttribute("href", imgURL);
+      link.setAttribute("download", `AgroVision_Rapport_${item.commonName.replace(/\s+/g, '_')}.png`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
   };
 
   if (history.length === 0) {
