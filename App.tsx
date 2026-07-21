@@ -11,6 +11,7 @@ import Settings from './components/Settings';
 import History from './components/History';
 import LoadingScreen from './components/LoadingScreen';
 import ClimateCrops from './components/ClimateCrops';
+import PermissionsModal from './components/PermissionsModal';
 import { StorageService } from './services/storage';
 
 interface AppContextType {
@@ -39,6 +40,18 @@ const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'scan' | 'community' | 'inbox' | 'ai' | 'settings' | 'history' | 'climate'>('scan');
   const [isAppLoading, setIsAppLoading] = useState(true);
+  const [hasCheckedPermissions, setHasCheckedPermissions] = useState<boolean>(() => {
+    const saved = localStorage.getItem('agrovision_permanent_permissions');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.camera === 'granted' && parsed.geolocation === 'granted' && parsed.microphone === 'granted') {
+          return true;
+        }
+      } catch (e) {}
+    }
+    return false;
+  });
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [language, setLanguage] = useState<Language>(StorageService.getSettings().language);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -116,14 +129,22 @@ const App: React.FC = () => {
     }, 4000);
   };
 
-  const handleRegister = (data: { name: string, phone: string, city: string, role: UserRole }) => {
+  const handleRegister = (data: { id?: string, name: string, phone: string, city: string, role: UserRole, avatar?: string }) => {
     const newUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...data,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(data.name)}`,
+      id: data.id || Math.random().toString(36).substr(2, 9),
+      name: data.name,
+      phone: data.phone,
+      city: data.city,
+      role: data.role,
+      avatar: data.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(data.name)}`,
     };
     setUser(newUser);
-    showToast(`Bienvenue ${data.name} !`, "success");
+    showToast(
+      language === 'FR' 
+        ? `Bienvenue ${data.name} !` 
+        : `Welcome ${data.name}!`, 
+      "success"
+    );
   };
 
   if (isAppLoading) {
@@ -134,6 +155,31 @@ const App: React.FC = () => {
         onInstall={installApp}
         language={language}
       />
+    );
+  }
+
+  if (!hasCheckedPermissions) {
+    return (
+      <AppContext.Provider value={{ showToast, language, setLanguage, deferredPrompt, showInstallBanner, setShowInstallBanner, installApp, isOffline, setIsOffline, activeTab, setActiveTab }}>
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center relative max-w-md mx-auto">
+          <PermissionsModal 
+            onComplete={() => setHasCheckedPermissions(true)}
+            language={language}
+          />
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs space-y-2 px-4 pointer-events-none">
+            {toasts.map(toast => (
+              <div key={toast.id} className={`pointer-events-auto p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top-4 duration-300 border backdrop-blur-md ${
+                toast.type === 'error' ? 'bg-red-500/90 text-white border-red-400' : 
+                toast.type === 'success' ? 'bg-emerald-600/90 text-white border-emerald-400' : 
+                'bg-white/90 text-gray-800 border-gray-200'
+              }`}>
+                <i className={`fa-solid ${toast.type === 'error' ? 'fa-circle-exclamation' : toast.type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}`}></i>
+                <p className="text-xs font-bold leading-tight">{toast.message}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </AppContext.Provider>
     );
   }
 

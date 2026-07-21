@@ -244,6 +244,23 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
                 </div>
               </div>
             )}
+
+            {/* Reset/Manage Hardware Permissions */}
+            <button
+              onClick={() => {
+                localStorage.removeItem('agrovision_permanent_permissions');
+                showToast(
+                  language === 'FR' 
+                    ? "Autorisations système réinitialisées. Elles seront redemandées au prochain démarrage."
+                    : "System permissions reset. They will be requested again on next launch.",
+                  "info"
+                );
+              }}
+              className="w-full py-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+            >
+              <i className="fa-solid fa-user-shield"></i>
+              {language === 'FR' ? "Réinitialiser les Autorisations" : "Reset System Permissions"}
+            </button>
           </div>
         </div>
 

@@ -222,3 +222,63 @@ export const analyzeClimateAdaptation = async (
   }
 };
 
+export const generateHarvestPredictionReport = async (
+  crop: string,
+  area: number,
+  areaUnit: string,
+  irrigation: string,
+  fertilizer: string,
+  weather: string,
+  soilData: any,
+  locationName: string,
+  language: 'FR' | 'EN'
+): Promise<string> => {
+  const isFr = language === 'FR';
+  const soilInfo = `pH: ${soilData.ph}, Matière Organique: ${soilData.organicMatter}%, NPK: ${soilData.npk.n}-${soilData.npk.p}-${soilData.npk.k}mg/kg`;
+  
+  const prompt = isFr
+    ? `En tant qu'agronome expert spécialisé en Afrique Centrale (Cameroun, Centrafrique), rédige une analyse agronomique sur mesure pour aider l'agriculteur de ${locationName} suite à sa simulation de récolte :
+       
+       PROFIL DU CHAMP :
+       - Culture : ${crop}
+       - Superficie : ${area} ${areaUnit}
+       - Irrigation : ${irrigation === 'rainfed' ? 'Pluvial uniquement (dépend des pluies)' : irrigation === 'moderate' ? 'Irrigation d\'appoint' : 'Irrigation complète et optimisée'}
+       - Fertilisation : ${fertilizer === 'none' ? 'Aucune (culture naturelle brute)' : fertilizer === 'organic' ? 'Compost / Amendement organique naturel' : fertilizer === 'chemical' ? 'Engrais chimique de synthèse (NPK)' : 'Mixte (organo-minérale)'}
+       - Météo observée : ${weather === 'dry' ? 'Sécheresse / Déficit pluvial' : weather === 'normal' ? 'Saison normale' : 'Pluies excédentaires'}
+       - Sol local : ${soilInfo}
+       
+       Écris un rapport extrêmement pratique et structuré en français (max 250-300 mots) :
+       1. SYNTHÈSE DE FAISABILITÉ : Valide l'adéquation de la culture avec le sol (pH: ${soilData.ph}) et les nutriments locaux.
+       2. RECOMMANDATIONS DE PROTECTION & ENGRAIS : Suggère des amendements naturels ou des bio-pesticides en fonction du profil choisi.
+       3. CONSEIL WATER-SMART : Propose une technique d'économie d'eau adaptée (paillage, goutte-à-goutte artisanal, demi-lunes, etc.).
+       Reste encourageant, humble, scientifique et utilise des techniques agroécologiques adaptées à l'Afrique sub-saharienne.`
+    : `As an expert agronomist specialized in Central African agriculture (Cameroon, Central African Republic), write a custom agronomic report to guide a farmer in ${locationName} based on their yield simulation setup:
+       
+       FIELD PROFILE:
+       - Crop: ${crop}
+       - Field Area: ${area} ${areaUnit}
+       - Irrigation: ${irrigation}
+       - Fertilization: ${fertilizer}
+       - Observed Weather: ${weather}
+       - Local Soil conditions: ${soilInfo}
+       
+       Write a highly practical, structured advice report in English (max 250-300 words):
+       1. CROP-SOIL MATCHING: Check compatibility of this crop with soil pH (pH: ${soilData.ph}) and current NPK.
+       2. NUTRIENT & PROTECTION STEPS: Recommend organic inputs, compost tea, or bio-pest controls based on selections.
+       3. WATER-SMART ADVICE: Recommend water preservation techniques (mulching, organic cover, micro-catchment, zai pits).
+       Keep it encouraging, scientifically precise, and tailored to low-input sub-Saharan agroecological contexts.`;
+
+  try {
+    const response = await executeWithFallback({
+      contents: {
+        parts: [
+          { text: prompt }
+        ]
+      }
+    });
+    return response.text || "";
+  } catch (error: any) {
+    throw error;
+  }
+};
+

@@ -21,7 +21,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const roles = ['Agriculteur', 'Ingénieur Agronome', 'ONG', 'Particulier', 'Autres'] as const;
 
   const handleConnect = () => {
-    const savedUser = StorageService.getUser();
+    const savedUser = StorageService.getSavedUser();
     if (savedUser && savedUser.name && savedUser.phone && savedUser.city && savedUser.role) {
       showToast(
         language === 'FR' 
