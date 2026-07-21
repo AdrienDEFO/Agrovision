@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { UserRole } from '../types';
 import { useApp } from '../App';
 import { StorageService } from '../services/storage';
+import Logo from './Logo';
 
 interface OnboardingProps {
   onComplete: (data: { name: string; phone: string; city: string; role: UserRole }) => void;
@@ -72,16 +73,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         
         {view === 'landing' ? (
           /* Landing view with Register and Sign In options */
-          <div className="p-8 text-center py-12 space-y-8 animate-in fade-in duration-300">
+          <div className="p-8 text-center py-10 space-y-7 animate-in fade-in duration-300">
             <div className="space-y-4">
-              <div className="w-24 h-24 bg-emerald-50 rounded-[2rem] flex items-center justify-center mx-auto shadow-inner rotate-3 transition-transform hover:rotate-6 duration-350">
-                <i className="fa-solid fa-wheat-awn text-5xl text-emerald-600"></i>
-              </div>
-              <h2 className="text-4xl font-black text-gray-900 leading-none tracking-tight">AgroVision AI</h2>
-              <p className="text-emerald-700 font-bold text-xs uppercase tracking-widest">
-                {language === 'FR' ? "L'agriculture de précision" : "Precision Agriculture"}
-              </p>
-              <p className="text-gray-400 font-semibold text-xs leading-snug px-4">
+              <Logo size="lg" showSubtitle={true} showSlogan={true} className="transform hover:scale-102 transition-all duration-300" />
+              <p className="text-gray-400 font-semibold text-xs leading-snug px-4 pt-1">
                 {language === 'FR' 
                   ? "Diagnostic d'herbiers, conseils agronomiques par IA, socialisation et robustesse offline."
                   : "Weed detection, AI advisory, social networking and fully resilient offline mode."}
@@ -113,7 +108,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         ) : (
           /* Registration view with Back option */
           <div className="animate-in slide-in-from-right duration-300">
-            <div className="p-8 text-center pt-8 pb-4 relative">
+            <div className="p-8 text-center pt-8 pb-2 relative flex flex-col items-center">
               <button 
                 onClick={() => setView('landing')}
                 className="absolute left-6 top-8 text-gray-400 hover:text-gray-700 transition-colors w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center"
@@ -122,10 +117,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 <i className="fa-solid fa-arrow-left text-sm"></i>
               </button>
 
-              <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
-                <i className="fa-solid fa-wheat-awn text-3xl text-emerald-600"></i>
-              </div>
-              <h2 className="text-2xl font-black text-gray-900 leading-tight">
+              <Logo size="sm" showSubtitle={false} showSlogan={false} className="mb-3" />
+              <h2 className="text-xl font-black text-gray-900 leading-tight">
                 {language === 'FR' ? "Inscription" : "Registration"}
               </h2>
               <p className="text-gray-500 font-semibold text-[10px] uppercase tracking-wider mt-0.5">

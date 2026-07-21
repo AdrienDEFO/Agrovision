@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { User, Language } from '../types';
 import { StorageService, StorageType } from '../services/storage';
 import { useApp } from '../App';
+import Logo from './Logo';
 
 interface SettingsProps {
   user: User;
@@ -13,6 +14,7 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
   const { showToast, setLanguage, language, showInstallBanner, installApp, isOffline, setIsOffline } = useApp();
   const [settings, setSettings] = useState(StorageService.getSettings());
   const [isSyncing, setIsSyncing] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   
   // Custom Backup keys rotation management for high intensity scanning (1000/day)
   const [backupKeys, setBackupKeys] = useState<string[]>(() => {
@@ -385,6 +387,34 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Beautiful Expandable About Section with Full Logo */}
+        <div className="space-y-3">
+          <div className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 space-y-4">
+            <button
+              onClick={() => setShowAbout(!showAbout)}
+              className="w-full flex items-center justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest outline-none cursor-pointer"
+            >
+              <span>{language === 'FR' ? "À propos d'AgroVision AI" : "About AgroVision AI"}</span>
+              <i className={`fa-solid ${showAbout ? 'fa-chevron-down' : 'fa-chevron-right'} text-[9px] text-emerald-600`}></i>
+            </button>
+            
+            {showAbout && (
+              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-inner flex flex-col items-center animate-in slide-in-from-top-2 duration-300">
+                <Logo size="md" showSubtitle={true} showSlogan={true} />
+                <p className="text-[10px] text-gray-500 font-semibold leading-relaxed text-center mt-4 border-t border-slate-100 pt-3">
+                  {language === 'FR'
+                    ? "AgroVision AI est une plateforme d'agriculture de précision souveraine, conçue pour opérer de manière résiliente même en l'absence de réseau Internet. Elle combine l'intelligence artificielle pour l'analyse des sols et des cultures et l'échange de savoir agronomique communautaire pour nourrir durablement l'Afrique."
+                    : "AgroVision AI is a sovereign precision agriculture framework engineered to deliver high-fidelity offline agronomic analysis. It fuses server-side and client-side AI modules with community collective wisdom to achieve sustainable food security in Africa."
+                  }
+                </p>
+                <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider mt-3">
+                  Version 2.0 (Offline Native)
+                </span>
               </div>
             )}
           </div>

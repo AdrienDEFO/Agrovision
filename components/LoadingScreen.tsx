@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LogoIcon, ApertureIcon } from './Logo';
 
 const messages = [
   "Préparation de vos outils agricoles...",
@@ -96,24 +97,41 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       </div>
 
       {/* Main Seedling Bounce */}
-      <div className="flex flex-col items-center justify-center space-y-8 my-auto z-10">
+      <div className="flex flex-col items-center justify-center space-y-7 my-auto z-10">
         <div className="relative">
-          <div className="absolute inset-0 bg-emerald-400 rounded-full blur-3xl opacity-25 animate-pulse"></div>
-          <div className="relative w-28 h-28 bg-white rounded-[2.2rem] flex items-center justify-center shadow-2xl rotate-3 animate-bounce">
-            <i className="fa-solid fa-seedling text-5.5xl text-emerald-600"></i>
+          <div className="absolute inset-0 bg-emerald-400 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+          <div className="relative transform hover:scale-105 transition-all duration-300">
+            <LogoIcon size={140} animate={true} />
           </div>
         </div>
         
-        <div className="space-y-4 max-w-xs">
-          <h2 className="text-white text-3xl font-black tracking-tight leading-none">AgroVision AI</h2>
+        <div className="space-y-3.5 max-w-xs">
+          <h2 className="text-white text-3xl font-black tracking-tight leading-none flex items-center justify-center gap-1.5">
+            <span className="text-emerald-100 font-black">Agro</span>
+            <span className="text-emerald-400 font-extrabold flex items-center">
+              Visi
+              <ApertureIcon size={24} className="text-emerald-400 mx-[1px] animate-[spin_10s_linear_infinite]" />
+              n
+            </span>
+            <span className="inline-block bg-emerald-500 text-slate-950 font-extrabold px-1.5 py-0.5 rounded-lg text-[45%] ml-1 self-center tracking-normal uppercase">
+              AI
+            </span>
+          </h2>
           
-          <div className="flex justify-center gap-1">
-            <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce"></div>
-            <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <p className="text-[7.5px] text-emerald-400 font-extrabold uppercase tracking-[0.18em] px-3 leading-snug">
+            {isFr 
+              ? "L'intelligence artificielle au service de la souveraineté alimentaire" 
+              : "Artificial intelligence for food sovereignty"
+            }
+          </p>
+          
+          <div className="flex justify-center gap-1 pt-1">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
           </div>
 
-          <p className="text-emerald-100/80 text-xs font-extrabold italic h-10 px-4 transition-all duration-300">
+          <p className="text-emerald-200/90 text-[11px] font-extrabold italic h-10 px-4 transition-all duration-300 pt-1">
             {isFr ? messages[msgIndex] : messagesEn[msgIndex]}
           </p>
         </div>

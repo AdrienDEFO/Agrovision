@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { User } from '../types';
 import { useApp } from '../App';
 import VoiceCommand from './VoiceCommand';
+import { ApertureIcon } from './Logo';
 
 interface LayoutProps {
   user: User;
@@ -25,12 +26,22 @@ const Layout: React.FC<LayoutProps> = ({ user, activeTab, setActiveTab, children
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="bg-emerald-700 text-white p-4 shadow-md flex justify-between items-center z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center rotate-3 shadow-lg">
-            <i className="fa-solid fa-leaf text-emerald-700 text-sm"></i>
+      <header className="bg-emerald-800 text-white p-4 shadow-md flex justify-between items-center z-10">
+        <div className="flex items-center gap-1.5 select-none">
+          <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center rotate-3 shadow-md hover:rotate-6 transition-all duration-300">
+            <i className="fa-solid fa-leaf text-emerald-800 text-sm"></i>
           </div>
-          <h1 className="font-bold text-lg tracking-tight italic">AgroVision</h1>
+          <h1 className="font-black text-base tracking-tight flex items-center gap-0.5 pl-1">
+            <span className="text-white">Agro</span>
+            <span className="text-emerald-300 font-extrabold flex items-center">
+              Visi
+              <ApertureIcon size={14} className="text-emerald-300 mx-[0.5px] animate-[spin_10s_linear_infinite]" />
+              n
+            </span>
+            <span className="bg-emerald-600 text-white font-extrabold px-1 py-0.2 rounded text-[50%] ml-1 uppercase">
+              AI
+            </span>
+          </h1>
         </div>
         <div className="flex items-center gap-2.5">
           <button 
