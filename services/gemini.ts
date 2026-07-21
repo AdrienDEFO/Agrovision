@@ -178,3 +178,47 @@ export const chatWithAI = async (message: string, history: any[]) => {
     return `Service temporairement indisponible ou limite de quota atteinte. (${error?.message || error})`;
   }
 };
+
+export const analyzeClimateAdaptation = async (
+  locationName: string,
+  lat: number,
+  lon: number,
+  climateImpact: string,
+  historicalData: { year: number; ws2mMin: number }[],
+  language: string
+): Promise<string> => {
+  const dataString = historicalData.map(d => `Année ${d.year}: min vent ${d.ws2mMin}m/s`).join(', ');
+  const prompt = language === 'FR' 
+    ? `En tant qu'expert en climatologie agricole et agronomie pour la souveraineté alimentaire en Afrique centrale (Cameroun, Centrafrique), rédige un diagnostic d'adaptation agricole face au changement climatique pour le secteur suivant :
+       Lieu: ${locationName} (Latitude: ${lat}, Longitude: ${lon})
+       Impact local observé: ${climateImpact}
+       Historique vent minimum de surface (NASA/POWER) : ${dataString}
+
+       Rédige un rapport synthétique, concret et extrêmement pratique contenant :
+       1. ANALYSE DE LA TENDANCE (comment la sécheresse de l'air est affectée par les sautes de vent minimum).
+       2. CALENDRIER CULTURAL ADAPTIF recommandé pour les cultures locales (manioc, sorgho, maïs, plantain, cacao ou café selon le biome).
+       3. 3 ACTIONS AGROÉCOLOGIQUES prioritaires d'urgence face au réchauffement global (ex: agriculture sous ombrage forestier, rotation, paillage).`
+    : `As an agricultural climatologist and senior agronomist specializing in Central African farming systems, write an agricultural climate adaptation report for the following location:
+       Location: ${locationName} (Latitude: ${lat}, Longitude: ${lon})
+       Observed local climate impact: ${climateImpact}
+       Historical wind speed minimums from NASA POWER dataset: ${dataString}
+
+       Write a highly practical, structured report containing:
+       1. CLIMATE TREND ANALYSIS (especially how minimum wind speed shifts affect soil humidity and moisture stress).
+       2. RECOMMENDED ADAPTIVE PLANTING CALENDAR to sync with erratic rainfall.
+       3. 3 ESSENTIAL AGROECOLOGICAL ACTIONS for this specific environment.`;
+
+  try {
+    const response = await executeWithFallback({
+      contents: {
+        parts: [
+          { text: prompt }
+        ]
+      }
+    });
+    return response.text || "";
+  } catch (error: any) {
+    throw error;
+  }
+};
+

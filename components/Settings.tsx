@@ -10,7 +10,7 @@ interface SettingsProps {
 }
 
 const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
-  const { showToast, setLanguage, language } = useApp();
+  const { showToast, setLanguage, language, showInstallBanner, installApp, isOffline, setIsOffline } = useApp();
   const [settings, setSettings] = useState(StorageService.getSettings());
   const [isSyncing, setIsSyncing] = useState(false);
   
@@ -137,6 +137,113 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
                 <option value="EN">ENGLISH</option>
               </select>
             </div>
+
+            {/* Premium Pitch Deck Access Button */}
+            <a 
+              href="/presentation.html" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-2xl transition-all shadow-md active:scale-98"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-white/20 text-white rounded-xl flex items-center justify-center shadow-inner">
+                  <i className="fa-solid fa-person-chalkboard text-xs"></i>
+                </div>
+                <div className="text-left">
+                  <p className="font-black text-white text-xs uppercase tracking-tighter">
+                    {language === 'FR' ? 'Pitch Deck Officiel' : 'Official Pitch Deck'}
+                  </p>
+                  <p className="text-[9px] text-emerald-100 font-semibold">
+                    {language === 'FR' ? '7 Slides interactifs avec modèle épidémiologique & business plan' : '7 Interactive slides with epidemiological equations & business plan'}
+                  </p>
+                </div>
+              </div>
+              <i className="fa-solid fa-arrow-up-right-from-square text-xs text-white/70"></i>
+            </a>
+          </div>
+        </div>
+
+        {/* PWA & Offline Management Section */}
+        <div className="space-y-3">
+          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+            {language === 'FR' ? 'Progressive Web App (PWA) & Hors-ligne' : 'Progressive Web App (PWA) & Offline'}
+          </h3>
+          <div className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 space-y-4">
+            
+            {/* Connection and sync status badge */}
+            <div className="flex items-center justify-between bg-white border border-slate-100 rounded-2xl p-3.5 shadow-sm">
+              <div className="flex items-center gap-2.5">
+                <div className={`w-2.5 h-2.5 rounded-full ${isOffline ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500 animate-pulse'}`}></div>
+                <span className="text-[10px] font-black uppercase text-slate-700 leading-none">
+                  {isOffline 
+                    ? (language === 'FR' ? "Opérations locales actives" : "Local offline operations")
+                    : (language === 'FR' ? "Synchronisé au cloud" : "Synced with cloud")
+                  }
+                </span>
+              </div>
+              <span className="text-[8px] font-black bg-slate-100 text-slate-500 px-2.5 py-0.5 rounded-full">
+                {isOffline ? "LOCAL" : "ONLINE"}
+              </span>
+            </div>
+
+            {/* Offline features checklist */}
+            <div className="space-y-1.5">
+              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none block">
+                {language === 'FR' ? "Capacités autonomes actives :" : "Active standalone capabilities:"}
+              </span>
+              <div className="grid grid-cols-1 gap-1 text-[10px] text-slate-600 font-semibold pl-1">
+                <div className="flex items-center gap-1.5 text-emerald-700">
+                  <i className="fa-solid fa-circle-check text-xs text-emerald-600"></i>
+                  <span>{language === 'FR' ? "Scanner de maladies (avec templates)" : "Disease Scanner (via offline templates)"}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-emerald-700">
+                  <i className="fa-solid fa-circle-check text-xs text-emerald-600"></i>
+                  <span>{language === 'FR' ? "Base de données & Rapports de vulnérabilité" : "Local database & Vulnerability reports"}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-emerald-700">
+                  <i className="fa-solid fa-circle-check text-xs text-emerald-600"></i>
+                  <span>{language === 'FR' ? "Calendriers de semis & Profils climatiques" : "Sowing calendars & Soil profiles"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Installation Prompt Action */}
+            {showInstallBanner ? (
+              <button
+                onClick={installApp}
+                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 cursor-pointer"
+              >
+                <i className="fa-solid fa-circle-arrow-down animate-bounce"></i>
+                {language === 'FR' ? "Installer sur l'appareil (PWA)" : "Install App on Device (PWA)"}
+              </button>
+            ) : (
+              <div className="bg-emerald-50/50 p-4 rounded-3xl border border-emerald-100 text-[10px] text-slate-600 space-y-2">
+                <p className="font-bold text-slate-800 flex items-center gap-1.5">
+                  <i className="fa-solid fa-square-phone text-emerald-600 text-sm"></i>
+                  {language === 'FR' ? "Installation sur mobile / PC :" : "Mobile or PC Installation:"}
+                </p>
+                <div className="space-y-1 leading-relaxed font-semibold">
+                  <p>
+                    {language === 'FR' 
+                      ? "• Android (Chrome) : Ouvrez le menu du navigateur, puis sélectionnez 'Ajouter à l'écran d'accueil'." 
+                      : "• Android (Chrome): Tap browser menu and select 'Add to Home screen'."
+                    }
+                  </p>
+                  <p>
+                    {language === 'FR' 
+                      ? "• iOS / iPhone (Safari) : Appuyez sur l'icône de partage [↑] en bas, puis sélectionnez 'Sur l'écran d'accueil'." 
+                      : "• iOS / iPhone (Safari): Tap share icon [↑] and choose 'Add to Home Screen'."
+                    }
+                  </p>
+                  <p>
+                    {language === 'FR' 
+                      ? "• PC (Chrome/Edge) : Cliquez sur l'icône d'installation dans la barre d'adresse en haut." 
+                      : "• PC (Chrome/Edge): Click the Install icon in the top URL address bar."
+                    }
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

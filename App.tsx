@@ -10,6 +10,7 @@ import AIChat from './components/AIChat';
 import Settings from './components/Settings';
 import History from './components/History';
 import LoadingScreen from './components/LoadingScreen';
+import ClimateCrops from './components/ClimateCrops';
 import { StorageService } from './services/storage';
 
 interface AppContextType {
@@ -20,6 +21,10 @@ interface AppContextType {
   showInstallBanner: boolean;
   setShowInstallBanner: (show: boolean) => void;
   installApp: () => void;
+  isOffline: boolean;
+  setIsOffline: (offline: boolean) => void;
+  activeTab: 'scan' | 'community' | 'inbox' | 'ai' | 'settings' | 'history' | 'climate';
+  setActiveTab: (tab: 'scan' | 'community' | 'inbox' | 'ai' | 'settings' | 'history' | 'climate') => void;
 }
 const AppContext = createContext<AppContextType | null>(null);
 export const useApp = () => useContext(AppContext)!;
@@ -32,18 +37,40 @@ const App: React.FC = () => {
     StorageService.saveUser(newUser);
   };
 
-  const [activeTab, setActiveTab] = useState<'scan' | 'community' | 'inbox' | 'ai' | 'settings' | 'history'>('scan');
+  const [activeTab, setActiveTab] = useState<'scan' | 'community' | 'inbox' | 'ai' | 'settings' | 'history' | 'climate'>('scan');
   const [isAppLoading, setIsAppLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [language, setLanguage] = useState<Language>(StorageService.getSettings().language);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isOffline, setIsOfflineState] = useState<boolean>(!navigator.onLine);
+
+  const setIsOffline = (offline: boolean) => {
+    setIsOfflineState(offline);
+  };
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOfflineState(false);
+      showToast(language === 'FR' ? "Connexion Internet rétablie !" : "Internet connection restored!", "success");
+    };
+    const handleOffline = () => {
+      setIsOfflineState(true);
+      showToast(language === 'FR' ? "Mode Hors-ligne activé." : "Offline Mode activated.", "info");
+    };
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [language]);
 
   useEffect(() => {
     const init = async () => {
       try {
         await StorageService.syncData();
-        setTimeout(() => setIsAppLoading(false), 2500);
+        setTimeout(() => setIsAppLoading(false), 800);
       } catch (e) {
         showToast("Erreur de synchronisation base de données", "error");
         setIsAppLoading(false);
@@ -99,12 +126,33 @@ const App: React.FC = () => {
     showToast(`Bienvenue ${data.name} !`, "success");
   };
 
-  if (isAppLoading) return <LoadingScreen />;
+  if (isAppLoading) {
+    return (
+      <LoadingScreen 
+        onSkip={() => setIsAppLoading(false)}
+        deferredPrompt={deferredPrompt}
+        onInstall={installApp}
+        language={language}
+      />
+    );
+  }
 
   return (
-    <AppContext.Provider value={{ showToast, language, setLanguage, deferredPrompt, showInstallBanner, setShowInstallBanner, installApp }}>
+    <AppContext.Provider value={{ showToast, language, setLanguage, deferredPrompt, showInstallBanner, setShowInstallBanner, installApp, isOffline, setIsOffline, activeTab, setActiveTab }}>
       <div className="min-h-screen bg-slate-50 flex flex-col max-w-md mx-auto relative shadow-2xl border-x border-gray-200 overflow-hidden">
         
+        {isOffline && (
+          <div className="bg-amber-500 text-white text-[10px] uppercase tracking-widest font-black py-2 px-4 flex items-center justify-between animate-in slide-in-from-top duration-300 z-50">
+            <span className="flex items-center gap-1.5">
+              <i className="fa-solid fa-plane-slash animate-bounce"></i>
+              {language === 'FR' ? "Mode Hors-ligne Actif" : "Offline Mode Active"}
+            </span>
+            <span className="bg-amber-600 px-2 py-0.5 rounded-full text-[8px] font-black">
+              {language === 'FR' ? "SYNCHRONISATION SUSPENDUE" : "LOCAL BACKUP"}
+            </span>
+          </div>
+        )}
+
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs space-y-2 px-4 pointer-events-none">
           {toasts.map(toast => (
             <div key={toast.id} className={`pointer-events-auto p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top-4 duration-300 border backdrop-blur-md ${
@@ -123,6 +171,7 @@ const App: React.FC = () => {
         ) : (
           <Layout user={user} activeTab={activeTab} setActiveTab={setActiveTab}>
             {activeTab === 'scan' && <PlantScanner />}
+            {activeTab === 'climate' && <ClimateCrops />}
             {activeTab === 'community' && <CommunityChat user={user} />}
             {activeTab === 'inbox' && <Inbox user={user} />}
             {activeTab === 'ai' && <AIChat user={user} />}

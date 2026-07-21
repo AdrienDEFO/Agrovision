@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '../types';
 import { useApp } from '../App';
+import VoiceCommand from './VoiceCommand';
 
 interface LayoutProps {
   user: User;
@@ -12,11 +13,12 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ user, activeTab, setActiveTab, children }) => {
   const { language } = useApp();
+  const [isVoiceOpen, setIsVoiceOpen] = useState(false);
 
   const labels = {
     scan: language === 'FR' ? 'Scan' : 'Scan',
     social: language === 'FR' ? 'Social' : 'Social',
-    history: language === 'FR' ? 'Historique' : 'History',
+    climate: language === 'FR' ? 'Climat' : 'Climate',
     ia: language === 'FR' ? 'IA' : 'AI',
     settings: language === 'FR' ? 'Réglages' : 'Settings'
   };
@@ -30,7 +32,14 @@ const Layout: React.FC<LayoutProps> = ({ user, activeTab, setActiveTab, children
           </div>
           <h1 className="font-bold text-lg tracking-tight italic">AgroVision</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          <button 
+            onClick={() => setIsVoiceOpen(true)}
+            className="w-8 h-8 rounded-full bg-emerald-600/50 hover:bg-emerald-600 border border-emerald-500/30 flex items-center justify-center transition-all cursor-pointer active:scale-90"
+            title={language === 'FR' ? "Commande vocale" : "Voice commands"}
+          >
+            <i className="fa-solid fa-microphone text-sm text-white"></i>
+          </button>
           <img src={user.avatar} className="w-8 h-8 rounded-full border-2 border-emerald-400 bg-white" alt="Profile" />
         </div>
       </header>
@@ -41,11 +50,14 @@ const Layout: React.FC<LayoutProps> = ({ user, activeTab, setActiveTab, children
 
       <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-xl border-t border-gray-100 flex justify-around items-center py-3 px-1 safe-area-bottom z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
         <NavButton icon="fa-camera" label={labels.scan} active={activeTab === 'scan'} onClick={() => setActiveTab('scan')} />
+        <NavButton icon="fa-cloud-sun-rain" label={labels.climate} active={activeTab === 'climate'} onClick={() => setActiveTab('climate')} />
         <NavButton icon="fa-users" label={labels.social} active={activeTab === 'community'} onClick={() => setActiveTab('community')} />
-        <NavButton icon="fa-clock-rotate-left" label={labels.history} active={activeTab === 'history'} onClick={() => setActiveTab('history')} />
         <NavButton icon="fa-robot" label={labels.ia} active={activeTab === 'ai'} onClick={() => setActiveTab('ai')} />
         <NavButton icon="fa-gear" label={labels.settings} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
       </nav>
+
+      {/* Global Voice Command Drawer/Modal */}
+      <VoiceCommand isOpen={isVoiceOpen} setIsOpen={setIsVoiceOpen} />
     </div>
   );
 };
