@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type, GenerateContentParameters, Modality } from "@google/genai";
 import { PlantResult, WeatherData } from "../types";
+import { StorageService } from "./storage";
 
 // Helper to retrieve all available API keys (system + local user backups)
 export const getAvailableApiKeys = (): string[] => {
@@ -26,16 +27,65 @@ export const getAvailableApiKeys = (): string[] => {
 // Soft state for current active key index to optimize subsequent calls and avoid known exhausted keys
 let currentKeyIndex = 0;
 
-function createAIClient(apiKey: string) {
-  return new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      }
-    }
-  });
+// Client instance cache to avoid recreating GoogleGenAI on each request
+const aiClientsCache = new Map<string, GoogleGenAI>();
+
+function createAIClient(apiKey: string): GoogleGenAI {
+  if (!aiClientsCache.has(apiKey)) {
+    aiClientsCache.set(
+      apiKey,
+      new GoogleGenAI({
+        apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      })
+    );
+  }
+  return aiClientsCache.get(apiKey)!;
 }
+
+// État de pré-chargement global de l'IA
+let isPreloaded = false;
+let isPreloading = false;
+
+/**
+ * Pré-charge et pré-chauffe le moteur IA en arrière-plan
+ * pour éliminer toute latence d'initialisation lors de la première photo.
+ */
+export const preloadAI = async (): Promise<boolean> => {
+  if (isPreloaded || isPreloading) return true;
+  isPreloading = true;
+
+  try {
+    const keys = getAvailableApiKeys();
+    if (keys.length === 0) {
+      isPreloading = false;
+      return false;
+    }
+
+    // Instancier tous les clients en mémoire
+    for (const key of keys) {
+      createAIClient(key);
+    }
+
+    // Nettoyage régulier de l'historique et cache ancien
+    StorageService.cleanOldHistory();
+
+    isPreloaded = true;
+    isPreloading = false;
+    console.log("[AI Engine] Pré-chargement des modèles et initialisation terminés avec succès ⚡");
+    return true;
+  } catch (err) {
+    console.warn("[AI Engine] Pré-chargement silencieux:", err);
+    isPreloading = false;
+    return false;
+  }
+};
+
+export const getAIPreloadStatus = (): boolean => isPreloaded;
 
 async function executeWithFallback(params: Omit<GenerateContentParameters, 'model'>) {
   const keys = getAvailableApiKeys();
@@ -43,8 +93,9 @@ async function executeWithFallback(params: Omit<GenerateContentParameters, 'mode
     throw new Error("Aucune clé API n'est configurée. Veuillez ajouter une clé API Gemini dans l'onglet Paramètres.");
   }
 
-  // Set sequence of powerful models with free tiers to fallback and rotate
+  // Séquence optimisée des modèles : priorité aux modèles ultra-rapides et précis
   const models = [
+    'gemini-2.5-flash',
     'gemini-3.5-flash',
     'gemini-3.1-flash-lite',
     'gemini-flash-latest',
@@ -93,8 +144,22 @@ async function executeWithFallback(params: Omit<GenerateContentParameters, 'mode
 export const identifyPlant = async (
   base64Image: string, 
   weather?: WeatherData, 
-  coords?: {lat: number, lng: number}
+  coords?: {lat: number, lng: number},
+  options?: { skipCache?: boolean }
 ): Promise<PlantResult | null> => {
+  // 1. Vérification du cache local ultra-rapide (< 10ms)
+  const imageHash = StorageService.computeImageHash(base64Image);
+  if (!options?.skipCache) {
+    const cached = StorageService.getCachedAnalysis(imageHash);
+    if (cached) {
+      console.log(`[AI Cache] Hit instantané pour l'image (Hash: ${imageHash}) ⚡`);
+      return {
+        ...cached,
+        isFromCache: true
+      };
+    }
+  }
+
   const contextText = weather 
     ? `Contexte local: Temp ${weather.temp}°C, Humidité ${weather.humidity}%, Condition: ${weather.condition}. Localisation: ${coords?.lat}, ${coords?.lng}.`
     : "Contexte local inconnu.";
@@ -159,7 +224,12 @@ export const identifyPlant = async (
       cleaned = cleaned.replace(/\s*```$/i, "");
     }
     
-    return JSON.parse(cleaned.trim()) as PlantResult;
+    const parsedResult = JSON.parse(cleaned.trim()) as PlantResult;
+    
+    // Sauvegarder dans le cache local pour les analyses futures
+    StorageService.setCachedAnalysis(imageHash, parsedResult);
+
+    return parsedResult;
   } catch (error) {
     console.error("AI Error:", error);
     throw error;

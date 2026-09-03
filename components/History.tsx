@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { StorageService } from '../services/storage';
+import { IDBService } from '../services/indexedDB';
 import { HistoryItem } from '../types';
 
 const History: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<HistoryItem | null>(null);
+  const [isExportingAll, setIsExportingAll] = useState(false);
 
   useEffect(() => {
     setHistory(StorageService.getHistory());
@@ -48,6 +50,17 @@ const History: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const exportAllToCSV = async () => {
+    setIsExportingAll(true);
+    try {
+      await IDBService.exportDiagnosticsToCSV(history);
+    } catch (e: any) {
+      alert(e?.message || "Erreur lors de l'export CSV");
+    } finally {
+      setIsExportingAll(false);
+    }
   };
 
   const exportToPDF = (item: HistoryItem) => {
@@ -335,8 +348,22 @@ const History: React.FC = () => {
   return (
     <div className="p-4 pb-28 space-y-6">
       <div className="flex items-center justify-between px-2">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Historique <span className="text-emerald-500 text-sm ml-2">{history.length}</span></h2>
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Auto-purge 30j</p>
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+            Historique <span className="text-emerald-500 text-sm ml-1">{history.length}</span>
+          </h2>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sauvegarde IndexedDB • 30j</p>
+        </div>
+
+        <button
+          onClick={exportAllToCSV}
+          disabled={isExportingAll}
+          className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+          title="Exporter tout l'historique en CSV"
+        >
+          <i className={`fa-solid ${isExportingAll ? 'fa-spinner fa-spin' : 'fa-file-csv'} text-xs text-emerald-600`}></i>
+          <span>{isExportingAll ? 'Export...' : 'Export CSV'}</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

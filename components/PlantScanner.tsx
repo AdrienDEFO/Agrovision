@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { identifyPlant } from '../services/gemini';
+import { identifyPlant, preloadAI } from '../services/gemini';
 import { PlantResult, WeatherData, DraftItem } from '../types';
 import { useApp } from '../App';
 import { StorageService } from '../services/storage';
@@ -15,6 +15,7 @@ const PlantScanner: React.FC = () => {
   const [result, setResult] = useState<PlantResult | null>(null);
   const [weather, setWeather] = useState<WeatherData | undefined>();
   const [coords, setCoords] = useState<{lat: number, lng: number} | undefined>();
+  const [aiReady, setAiReady] = useState(false);
 
   // États pour la robustesse hors-ligne (brouillons + turbulence réseau)
   const [drafts, setDrafts] = useState<DraftItem[]>([]);
@@ -36,6 +37,11 @@ const PlantScanner: React.FC = () => {
   };
 
   useEffect(() => {
+    // Pré-chargement et pré-chauffage de l'IA en arrière-plan
+    preloadAI().then((success) => {
+      setAiReady(success);
+    });
+
     // Charger la liste initiale des brouillons
     setDrafts(StorageService.getDrafts());
 
@@ -91,7 +97,7 @@ const PlantScanner: React.FC = () => {
     }
     const interval = setInterval(() => {
       setLoadingStep(prev => (prev + 1) % 5);
-    }, 700);
+    }, 500);
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -160,13 +166,22 @@ const PlantScanner: React.FC = () => {
     }
   };
 
-  const processImage = async (base64: string, fullDataUrl: string) => {
+  const processImage = async (base64: string, fullDataUrl: string, skipCache: boolean = false) => {
     setLoading(true);
     setResult(null);
     setShowOfflineRetryOptions(false);
 
-    // Si on est déconnecté, proposer directement la sauvegarde hors-ligne
+    // Si on est déconnecté, vérifier si on a la réponse en cache avant d'abandonner
     if (!navigator.onLine) {
+      const hash = StorageService.computeImageHash(base64);
+      const cached = StorageService.getCachedAnalysis(hash);
+      if (cached) {
+        setResult(cached);
+        setLoading(false);
+        showToast(language === 'FR' ? "Diagnostic instantané (Trouvé dans le cache hors-ligne) ⚡" : "Instant diagnostic (Found in offline cache) ⚡", "success");
+        return;
+      }
+
       setLoading(false);
       setShowOfflineRetryOptions(true);
       showToast(language === 'FR' 
@@ -176,7 +191,7 @@ const PlantScanner: React.FC = () => {
     }
 
     try {
-      const res = await identifyPlant(base64, weather, coords);
+      const res = await identifyPlant(base64, weather, coords, { skipCache });
       if (res) {
         setResult(res);
         // Sauvegarde dans l'historique
@@ -184,7 +199,12 @@ const PlantScanner: React.FC = () => {
           ...res,
           image: fullDataUrl
         });
-        showToast("Diagnostic expert terminé et enregistré !", "success");
+
+        if (res.isFromCache) {
+          showToast(language === 'FR' ? "Diagnostic instantané (Résultat en cache local) ⚡" : "Instant diagnostic (Local cache hit) ⚡", "success");
+        } else {
+          showToast(language === 'FR' ? "Diagnostic expert terminé et enregistré !" : "Expert diagnostic completed and saved!", "success");
+        }
       }
     } catch (err: any) {
       console.error("Analysis Exception:", err);
@@ -337,17 +357,31 @@ const PlantScanner: React.FC = () => {
       {!image ? (
         <div className="space-y-4 animate-in fade-in duration-500">
           <div className="flex flex-col items-center justify-center h-[30rem] bg-white rounded-[3rem] border-4 border-dashed border-emerald-50 shadow-2xl p-8 text-center relative overflow-hidden group">
-             <div className="w-28 h-28 bg-emerald-600 rounded-full flex items-center justify-center mb-8 shadow-xl shadow-emerald-200">
+             {/* Badge d'optimisation IA pré-chargée */}
+             <div className="absolute top-5 left-5 right-5 flex justify-between items-center">
+               <span className="bg-emerald-50 border border-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[9px] font-black tracking-wider uppercase flex items-center gap-1.5 shadow-sm">
+                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                 <i className="fa-solid fa-bolt text-amber-500"></i>
+                 {language === 'FR' ? "IA Préchauffée & Cache Actif" : "AI Prewarmed & Fast Cache"}
+               </span>
+               <span className="text-[9px] font-bold text-slate-400">
+                 &lt; 2s
+               </span>
+             </div>
+
+             <div className="w-28 h-28 bg-emerald-600 rounded-full flex items-center justify-center mb-8 shadow-xl shadow-emerald-200 mt-4">
                 <i className="fa-solid fa-expand text-4xl text-white"></i>
              </div>
              <h2 className="text-3xl font-black text-gray-900 tracking-tight">Scanner Expert</h2>
-             <p className="text-gray-500 mt-4 text-sm leading-relaxed max-w-[240px]">
-               Analyse par image enrichie par votre climat et géolocalisation actuelle.
+             <p className="text-gray-500 mt-3 text-sm leading-relaxed max-w-[250px]">
+               {language === 'FR' 
+                 ? "Analyse ultra-rapide par vision IA enrichie de votre contexte agronomique." 
+                 : "Ultra-fast AI vision analysis boosted by your agronomic context."}
              </p>
 
-             <div className="mt-12 w-full space-y-3">
-                <button onClick={() => cameraInputRef.current?.click()} className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black shadow-lg active:scale-95 transition-transform">PRENDRE PHOTO</button>
-                <button onClick={() => fileInputRef.current?.click()} className="w-full bg-slate-100 text-slate-700 py-5 rounded-2xl font-black border border-slate-200 active:scale-95 transition-transform">IMPORTER (MAX 10Mo)</button>
+             <div className="mt-10 w-full space-y-3">
+                <button onClick={() => cameraInputRef.current?.click()} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-5 rounded-2xl font-black shadow-lg shadow-emerald-200 active:scale-95 transition-all">PRENDRE PHOTO</button>
+                <button onClick={() => fileInputRef.current?.click()} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-5 rounded-2xl font-black border border-slate-200 active:scale-95 transition-all">IMPORTER (MAX 10Mo)</button>
              </div>
 
              <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} className="hidden" onChange={handleFileChange} />
@@ -450,14 +484,14 @@ const PlantScanner: React.FC = () => {
               <div className="absolute inset-0 bg-emerald-900/85 backdrop-blur-sm flex flex-col items-center justify-center text-white p-8">
                 <div className="w-16 h-16 border-4 border-emerald-400/20 border-t-emerald-400 rounded-full animate-spin mb-6"></div>
                 <h3 className="text-sm font-black uppercase tracking-widest italic text-center min-h-[1.5rem]">
-                  {loadingStep === 0 && (language === 'FR' ? "📡 Capture du Spectre..." : "📡 Spectral Capture...")}
-                  {loadingStep === 1 && (language === 'FR' ? "🔬 Analyse des Pigments..." : "🔬 Pigment Analysis...")}
-                  {loadingStep === 2 && (language === 'FR' ? "🌍 Corrélation Géo-Climatique..." : "🌍 Geo-Climatology Match...")}
-                  {loadingStep === 3 && (language === 'FR' ? "🧠 Consultation Experts IA..." : "🧠 Querying AI Experts...")}
-                  {loadingStep === 4 && (language === 'FR' ? "📝 Rédaction du Diagnostic..." : "📝 Final Diagnostic Report...")}
+                  {loadingStep === 0 && (language === 'FR' ? "⚡ Consultation du Cache Rapide..." : "⚡ Fast Cache Lookup...")}
+                  {loadingStep === 1 && (language === 'FR' ? "📡 Capture du Spectre & Vision IA..." : "📡 Spectral Capture & AI Vision...")}
+                  {loadingStep === 2 && (language === 'FR' ? "🌍 Corrélation Sol & Géo-Climat..." : "🌍 Soil & Geo-Climatology Match...")}
+                  {loadingStep === 3 && (language === 'FR' ? "🧠 Diagnostic Agronomique..." : "🧠 Agronomic Diagnosis...")}
+                  {loadingStep === 4 && (language === 'FR' ? "📝 Rédaction du Rapport..." : "📝 Final Diagnostic Report...")}
                 </h3>
                 <p className="text-[9px] text-emerald-300 font-black uppercase tracking-widest mt-2 animate-pulse">
-                  {language === 'FR' ? "Analyse accélérée active ⚡" : "Accelerated analysis active ⚡"}
+                  {language === 'FR' ? "Analyse ultra-rapide active ⚡" : "Ultra-fast analysis active ⚡"}
                 </p>
                 <div className="flex gap-2 mt-6">
                    <div className="px-3 py-1 bg-white/10 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
@@ -504,7 +538,7 @@ const PlantScanner: React.FC = () => {
                 {onlineStatus && (
                   <button 
                     onClick={() => {
-                      if (rawBase64) processImage(rawBase64, image!);
+                      if (rawBase64) processImage(rawBase64, image!, true);
                     }}
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-100 active:scale-95 transition-transform flex items-center justify-center gap-2"
                   >
@@ -522,17 +556,38 @@ const PlantScanner: React.FC = () => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-full"></div>
                 <div className="flex justify-between items-start mb-6">
                   <div className="max-w-[70%]">
-                    <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">{result.commonName}</h2>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">{result.commonName}</h2>
+                      {result.isFromCache && (
+                        <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+                          <i className="fa-solid fa-bolt text-amber-500"></i>
+                          {language === 'FR' ? "Cache Instantané" : "Instant Cache"}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-emerald-600 font-bold italic mt-2">{result.scientificName}</p>
                   </div>
-                  <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${result.isWeed || result.isDisease ? 'bg-red-50 text-red-500 border border-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
+                  <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${result.isDisease ? 'bg-red-50 text-red-500 border border-red-100' : result.isWeed ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
                     {result.isDisease ? 'Maladie' : result.isWeed ? 'Invasive' : 'Saine'}
                   </div>
                 </div>
 
-                <div className="inline-flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-xl border border-orange-100 mb-6">
-                  <i className="fa-solid fa-mountain-sun text-orange-500 text-xs"></i>
-                  <span className="text-[10px] font-black text-orange-800 uppercase tracking-tighter">Type de Sol détecté : {result.soilType}</span>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <div className="inline-flex items-center gap-2 bg-orange-50 px-4 py-2 rounded-xl border border-orange-100">
+                    <i className="fa-solid fa-mountain-sun text-orange-500 text-xs"></i>
+                    <span className="text-[10px] font-black text-orange-800 uppercase tracking-tighter">Type de Sol détecté : {result.soilType}</span>
+                  </div>
+
+                  {result.isFromCache && onlineStatus && rawBase64 && (
+                    <button
+                      onClick={() => processImage(rawBase64, image!, true)}
+                      className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-[10px] font-black tracking-wider uppercase border border-slate-200 transition-colors active:scale-95"
+                      title={language === 'FR' ? "Forcer une nouvelle analyse complète en direct" : "Force a fresh live analysis"}
+                    >
+                      <i className="fa-solid fa-arrows-rotate text-emerald-600"></i>
+                      {language === 'FR' ? "Re-scanner en direct" : "Re-scan live"}
+                    </button>
+                  )}
                 </div>
 
                 <p className="text-slate-600 leading-relaxed text-sm font-medium">{result.description}</p>
@@ -590,3 +645,4 @@ const MethodItem: React.FC<{label: string, text: string, icon: string}> = ({labe
 );
 
 export default PlantScanner;
+

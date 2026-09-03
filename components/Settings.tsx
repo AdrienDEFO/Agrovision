@@ -1,9 +1,11 @@
 
-import React, { useState } from 'react';
-import { User, Language } from '../types';
+import React, { useState, useEffect } from 'react';
+import { User, Language, HistoryItem } from '../types';
 import { StorageService, StorageType } from '../services/storage';
+import { IDBService, IDBStatus } from '../services/indexedDB';
 import { useApp } from '../App';
 import Logo from './Logo';
+import YieldChart from './YieldChart';
 
 interface SettingsProps {
   user: User;
@@ -15,6 +17,72 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
   const [settings, setSettings] = useState(StorageService.getSettings());
   const [isSyncing, setIsSyncing] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  
+  // IndexedDB & Export CSV State
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [idbStatus, setIdbStatus] = useState<IDBStatus | null>(null);
+  const [isExportingCSV, setIsExportingCSV] = useState(false);
+  const [isSyncingIDB, setIsSyncingIDB] = useState(false);
+
+  useEffect(() => {
+    const hist = StorageService.getHistory();
+    setHistory(hist);
+    IDBService.getStatus().then((status) => {
+      setIdbStatus(status);
+      // Synchronisation initiale automatique dans IndexedDB si besoin
+      if (status.isSupported && (status.count < hist.length || status.count === 0) && hist.length > 0) {
+        IDBService.syncDiagnostics(hist).then(() => {
+          IDBService.getStatus().then(setIdbStatus);
+        });
+      }
+    });
+  }, []);
+
+  const handleExportCSV = async () => {
+    setIsExportingCSV(true);
+    try {
+      const currentHistory = StorageService.getHistory();
+      const res = await IDBService.exportDiagnosticsToCSV(currentHistory);
+      showToast(
+        language === 'FR' 
+          ? `Export réussi : ${res.count} diagnostic(s) exportés en CSV depuis la sauvegarde sécurisée IndexedDB !` 
+          : `Export successful: ${res.count} diagnostic(s) exported to CSV via secured IndexedDB offline backup!`,
+        "success"
+      );
+      const updated = await IDBService.getStatus();
+      setIdbStatus(updated);
+    } catch (err: any) {
+      showToast(
+        err?.message || (language === 'FR' ? "Erreur lors de l'export CSV" : "Error during CSV export"),
+        "error"
+      );
+    } finally {
+      setIsExportingCSV(false);
+    }
+  };
+
+  const handleSyncIDB = async () => {
+    setIsSyncingIDB(true);
+    try {
+      const currentHistory = StorageService.getHistory();
+      const count = await IDBService.syncDiagnostics(currentHistory);
+      const updated = await IDBService.getStatus();
+      setIdbStatus(updated);
+      showToast(
+        language === 'FR'
+          ? `IndexedDB synchronisé : ${count} diagnostics sécurisés hors-ligne.`
+          : `IndexedDB synchronized: ${count} diagnostics secured offline.`,
+        "success"
+      );
+    } catch {
+      showToast(
+        language === 'FR' ? "Erreur de synchronisation IndexedDB" : "IndexedDB sync error",
+        "error"
+      );
+    } finally {
+      setIsSyncingIDB(false);
+    }
+  };
   
   // Custom Backup keys rotation management for high intensity scanning (1000/day)
   const [backupKeys, setBackupKeys] = useState<string[]>(() => {
@@ -165,6 +233,94 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
           </div>
         </div>
 
+        {/* Graphique de Rendement des Récoltes */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center ml-1">
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              {language === 'FR' ? 'Analyse & Graphique de Rendement' : 'Yield Analytics & Crop Projection'}
+            </h3>
+            <span className="text-[8px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-black uppercase">
+              {language === 'FR' ? 'Modèle IA' : 'AI Model'}
+            </span>
+          </div>
+
+          <YieldChart 
+            language={language} 
+            history={history} 
+            onExportCSV={handleExportCSV} 
+          />
+        </div>
+
+        {/* Sauvegarde Sécurisée Hors-ligne (IndexedDB) & Export CSV */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center ml-1">
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              {language === 'FR' ? 'Sauvegarde IndexedDB & Export CSV' : 'IndexedDB Backup & CSV Export'}
+            </h3>
+            <span className="text-[8px] bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full font-black uppercase">
+              {idbStatus?.isSupported ? "IndexedDB OK" : "Stockage Local"}
+            </span>
+          </div>
+
+          <div className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 space-y-4">
+            {/* Statut de stockage IndexedDB */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-xs">
+                    <i className="fa-solid fa-hard-drive"></i>
+                  </div>
+                  <div>
+                    <span className="text-xs font-black text-slate-800 uppercase tracking-tight block">
+                      {language === 'FR' ? 'Sauvegarde Sécurisée Hors-ligne' : 'Secured Offline Backup'}
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-500">
+                      {idbStatus?.count ?? history.length} {language === 'FR' ? 'diagnostic(s) archivé(s) dans IndexedDB' : 'diagnoses stored in IndexedDB'}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
+                  {language === 'FR' ? 'Persistant' : 'Persistent'}
+                </span>
+              </div>
+
+              <p className="text-[10px] text-slate-500 font-medium leading-relaxed pt-1 border-t border-slate-100">
+                {language === 'FR' 
+                  ? "Les fiches de diagnostic et de rendement sont stockées localement dans IndexedDB pour résister aux coupures de réseau et permettre un archivage durable sans dépendance au serveur."
+                  : "Diagnostic and crop yield logs are safely persisted locally in IndexedDB to withstand network drops and allow long-term offline retention."
+                }
+              </p>
+            </div>
+
+            {/* Bouton d'export CSV des données de diagnostic */}
+            <button
+              id="export-diagnostics-csv-btn"
+              onClick={handleExportCSV}
+              disabled={isExportingCSV}
+              className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/10 active:scale-95 cursor-pointer disabled:opacity-50"
+            >
+              <i className={`fa-solid ${isExportingCSV ? 'fa-spinner fa-spin' : 'fa-file-csv'} text-sm text-emerald-200`}></i>
+              {isExportingCSV 
+                ? (language === 'FR' ? "Génération CSV en cours..." : "Generating CSV...")
+                : (language === 'FR' ? "Exporter les Diagnostics (CSV)" : "Export Diagnostics to CSV")
+              }
+            </button>
+
+            {/* Bouton de resynchronisation manuelle IndexedDB */}
+            <button
+              onClick={handleSyncIDB}
+              disabled={isSyncingIDB}
+              className="w-full py-2.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-black text-[10px] uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+            >
+              <i className={`fa-solid ${isSyncingIDB ? 'fa-spinner fa-spin' : 'fa-rotate'} text-indigo-600`}></i>
+              {isSyncingIDB 
+                ? (language === 'FR' ? "Synchronisation en cours..." : "Syncing...")
+                : (language === 'FR' ? "Synchroniser avec IndexedDB" : "Sync with IndexedDB")
+              }
+            </button>
+          </div>
+        </div>
+
         {/* PWA & Offline Management Section */}
         <div className="space-y-3">
           <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
@@ -262,6 +418,23 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
             >
               <i className="fa-solid fa-user-shield"></i>
               {language === 'FR' ? "Réinitialiser les Autorisations" : "Reset System Permissions"}
+            </button>
+
+            {/* Clear AI Analysis Cache */}
+            <button
+              onClick={() => {
+                StorageService.clearAnalysisCache();
+                showToast(
+                  language === 'FR' 
+                    ? "Cache d'analyse IA vidé avec succès."
+                    : "AI analysis cache cleared successfully.",
+                  "success"
+                );
+              }}
+              className="w-full py-3 bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200 text-amber-800 font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+            >
+              <i className="fa-solid fa-bolt text-amber-600"></i>
+              {language === 'FR' ? "Vider le Cache d'Analyse IA" : "Clear AI Fast Cache"}
             </button>
           </div>
         </div>

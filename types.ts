@@ -39,6 +39,7 @@ export interface PlantResult {
   };
   description: string;
   timestamp?: number;
+  isFromCache?: boolean;
 }
 
 export interface HistoryItem extends PlantResult {

@@ -13,6 +13,7 @@ import LoadingScreen from './components/LoadingScreen';
 import ClimateCrops from './components/ClimateCrops';
 import PermissionsModal from './components/PermissionsModal';
 import { StorageService } from './services/storage';
+import { preloadAI } from './services/gemini';
 
 interface AppContextType {
   showToast: (message: string, type?: Toast['type']) => void;
@@ -82,6 +83,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const init = async () => {
       try {
+        preloadAI().catch(() => {});
         await StorageService.syncData();
         setTimeout(() => setIsAppLoading(false), 800);
       } catch (e) {
