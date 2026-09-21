@@ -579,7 +579,26 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
             {showAbout && (
               <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-inner flex flex-col items-center animate-in slide-in-from-top-2 duration-300">
                 <Logo size="md" showSubtitle={true} showSlogan={true} />
-                <p className="text-[10px] text-gray-500 font-semibold leading-relaxed text-center mt-4 border-t border-slate-100 pt-3">
+                
+                {/* Director Highlight Card */}
+                <div className="w-full mt-4 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 border border-amber-400/40 text-left flex items-center gap-3 shadow-md">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shrink-0 shadow-sm">
+                    <i className="fa-solid fa-clapperboard text-sm"></i>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-amber-300 block">
+                      {language === 'FR' ? "RÉALISATEUR & CONCEPTEUR" : "DIRECTOR & CREATOR"}
+                    </span>
+                    <span className="text-sm font-black text-white block tracking-wide">
+                      Ange Adrien DEFO
+                    </span>
+                    <span className="text-[8.5px] text-emerald-200/80 font-medium block">
+                      {language === 'FR' ? "Direction de projet, IA & Agriculture Durable" : "Project Direction, AI & Sustainable Agriculture"}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-gray-500 font-semibold leading-relaxed text-center mt-3 border-t border-slate-100 pt-3">
                   {language === 'FR'
                     ? "AgroVision AI est une plateforme d'agriculture de précision souveraine, conçue pour opérer de manière résiliente même en l'absence de réseau Internet. Elle combine l'intelligence artificielle pour l'analyse des sols et des cultures et l'échange de savoir agronomique communautaire pour nourrir durablement l'Afrique."
                     : "AgroVision AI is a sovereign precision agriculture framework engineered to deliver high-fidelity offline agronomic analysis. It fuses server-side and client-side AI modules with community collective wisdom to achieve sustainable food security in Africa."

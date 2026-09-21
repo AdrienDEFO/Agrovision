@@ -2,19 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { LogoIcon, ApertureIcon } from './Logo';
 
 const messages = [
+  "Une réalisation signée Ange Adrien DEFO...",
+  "Direction de projet & IA : Ange Adrien DEFO...",
   "Préparation de vos outils agricoles...",
   "Analyse des données climatiques...",
   "Optimisation de l'IA pour vos sols...",
   "Cultiver l'Excellence, Nourrir l'Afrique...",
-  "Chargement de l'expertise communautaire...",
 ];
 
 const messagesEn = [
+  "A production directed by Ange Adrien DEFO...",
+  "Project Direction & AI: Ange Adrien DEFO...",
   "Preparing your agricultural toolkits...",
   "Analyzing regional climate intelligence...",
   "Optimizing artificial intelligence for your soils...",
   "Cultivating Excellence, Feeding Africa...",
-  "Loading community farming wisdom...",
 ];
 
 interface LoadingScreenProps {
@@ -124,6 +126,36 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
               : "Artificial intelligence for food sovereignty"
             }
           </p>
+
+          {/* Cartouche Réalisateur d'honneur - Ange Adrien DEFO */}
+          <div className="w-full max-w-xs mx-auto mt-2 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-900/90 via-emerald-850 to-emerald-900/90 border border-amber-400/40 shadow-2xl shadow-emerald-950/70 backdrop-blur-sm flex items-center gap-3 animate-in zoom-in-95 duration-500 text-left">
+            <div className="relative shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-md shadow-amber-500/20">
+                <i className="fa-solid fa-clapperboard text-base"></i>
+              </div>
+              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
+              </span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-[8px] font-black uppercase tracking-[0.22em] text-amber-300 flex items-center gap-1">
+                  <i className="fa-solid fa-star text-[7px] text-amber-400"></i>
+                  {isFr ? "RÉALISATEUR" : "DIRECTOR"}
+                </span>
+                <span className="text-[7px] font-bold bg-amber-400/20 text-amber-200 border border-amber-400/30 px-1.5 py-0.2 rounded uppercase tracking-wider">
+                  {isFr ? "Auteur" : "Creator"}
+                </span>
+              </div>
+              <h3 className="text-sm font-black text-white tracking-wide leading-tight truncate">
+                Ange Adrien DEFO
+              </h3>
+              <p className="text-[8.5px] text-emerald-300/80 font-semibold tracking-tight truncate mt-0.5">
+                {isFr ? "Direction du Projet & Architecture IA" : "Project Direction & AI Architecture"}
+              </p>
+            </div>
+          </div>
           
           <div className="flex justify-center gap-1 pt-1">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce"></div>
@@ -152,9 +184,15 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
         </p>
       </div>
 
-      {/* Footer copyright */}
-      <div className="text-emerald-500/40 text-[9px] font-black uppercase tracking-[0.25em] z-10">
-        Cultiver l'Excellence, Nourrir l'Afrique
+      {/* Footer copyright and director honor */}
+      <div className="flex flex-col items-center gap-1 z-10">
+        <div className="text-amber-400/95 text-[9.5px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5">
+          <i className="fa-solid fa-film text-[8.5px] text-amber-400"></i>
+          <span>{isFr ? "RÉALISÉ PAR ANGE ADRIEN DEFO" : "DIRECTED BY ANGE ADRIEN DEFO"}</span>
+        </div>
+        <div className="text-emerald-500/50 text-[8px] font-black uppercase tracking-[0.25em]">
+          Cultiver l'Excellence, Nourrir l'Afrique
+        </div>
       </div>
 
       {/* Download / Interactive Installation Modal */}

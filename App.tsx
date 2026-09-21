@@ -85,7 +85,7 @@ const App: React.FC = () => {
       try {
         preloadAI().catch(() => {});
         await StorageService.syncData();
-        setTimeout(() => setIsAppLoading(false), 800);
+        setTimeout(() => setIsAppLoading(false), 2400);
       } catch (e) {
         showToast("Erreur de synchronisation base de données", "error");
         setIsAppLoading(false);
