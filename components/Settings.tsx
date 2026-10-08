@@ -13,7 +13,7 @@ interface SettingsProps {
 }
 
 const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
-  const { showToast, setLanguage, language, showInstallBanner, installApp, isOffline, setIsOffline } = useApp();
+  const { showToast, setLanguage, language, showInstallBanner, installApp, isOffline, setIsOffline, permissions, openPermissionsModal } = useApp();
   const [settings, setSettings] = useState(StorageService.getSettings());
   const [isSyncing, setIsSyncing] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
@@ -403,22 +403,64 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser }) => {
               </div>
             )}
 
-            {/* Reset/Manage Hardware Permissions */}
-            <button
-              onClick={() => {
-                localStorage.removeItem('agrovision_permanent_permissions');
-                showToast(
-                  language === 'FR' 
-                    ? "Autorisations système réinitialisées. Elles seront redemandées au prochain démarrage."
-                    : "System permissions reset. They will be requested again on next launch.",
-                  "info"
-                );
-              }}
-              className="w-full py-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
-            >
-              <i className="fa-solid fa-user-shield"></i>
-              {language === 'FR' ? "Réinitialiser les Autorisations" : "Reset System Permissions"}
-            </button>
+            {/* Live Hardware Permissions Panel */}
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-black text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                  <i className="fa-solid fa-user-shield text-emerald-600"></i>
+                  {language === 'FR' ? "Statut des Autorisations" : "Hardware Permissions Status"}
+                </span>
+                <span className="text-[8px] font-bold text-slate-400">
+                  {language === 'FR' ? "Redemandé à chaque ouverture" : "Requested on every launch"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-1.5 text-[8px]">
+                <div className="bg-white p-2 rounded-xl border border-slate-200 text-center">
+                  <div className="text-slate-400 font-bold mb-0.5">GPS</div>
+                  <div className={`font-black uppercase truncate ${
+                    permissions.geolocation === 'in_use' ? 'text-emerald-600' :
+                    permissions.geolocation === 'once' ? 'text-amber-600' : 'text-rose-600'
+                  }`}>
+                    {permissions.geolocation === 'in_use' ? (language === 'FR' ? 'En cours' : 'In use') :
+                     permissions.geolocation === 'once' ? (language === 'FR' ? '1 fois' : 'Once') : 
+                     (language === 'FR' ? 'Refusé' : 'Denied')}
+                  </div>
+                </div>
+
+                <div className="bg-white p-2 rounded-xl border border-slate-200 text-center">
+                  <div className="text-slate-400 font-bold mb-0.5">{language === 'FR' ? 'Caméra' : 'Camera'}</div>
+                  <div className={`font-black uppercase truncate ${
+                    permissions.camera === 'in_use' ? 'text-emerald-600' :
+                    permissions.camera === 'once' ? 'text-amber-600' : 'text-rose-600'
+                  }`}>
+                    {permissions.camera === 'in_use' ? (language === 'FR' ? 'En cours' : 'In use') :
+                     permissions.camera === 'once' ? (language === 'FR' ? '1 fois' : 'Once') : 
+                     (language === 'FR' ? 'Refusé' : 'Denied')}
+                  </div>
+                </div>
+
+                <div className="bg-white p-2 rounded-xl border border-slate-200 text-center">
+                  <div className="text-slate-400 font-bold mb-0.5">Micro</div>
+                  <div className={`font-black uppercase truncate ${
+                    permissions.microphone === 'in_use' ? 'text-emerald-600' :
+                    permissions.microphone === 'once' ? 'text-amber-600' : 'text-rose-600'
+                  }`}>
+                    {permissions.microphone === 'in_use' ? (language === 'FR' ? 'En cours' : 'In use') :
+                     permissions.microphone === 'once' ? (language === 'FR' ? '1 fois' : 'Once') : 
+                     (language === 'FR' ? 'Refusé' : 'Denied')}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={openPermissionsModal}
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[9.5px] uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
+              >
+                <i className="fa-solid fa-sliders"></i>
+                {language === 'FR' ? "Modifier les Autorisations (GPS, Caméra, Micro)" : "Change Permissions (GPS, Camera, Mic)"}
+              </button>
+            </div>
 
             {/* Clear AI Analysis Cache */}
             <button

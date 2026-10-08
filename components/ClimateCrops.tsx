@@ -364,7 +364,7 @@ const DEFAULT_ALERTS: AgroAlert[] = [
 ];
 
 const ClimateCrops: React.FC = () => {
-  const { showToast, language, isOffline, setIsOffline } = useApp();
+  const { showToast, language, isOffline, setIsOffline, permissions } = useApp();
   const [selectedProfile, setSelectedProfile] = useState<LocationProfile>(LOCATION_PROFILES[0]);
   const [useGps, setUseGps] = useState(false);
   const [aiReport, setAiReport] = useState<string>('');
@@ -485,6 +485,16 @@ const ClimateCrops: React.FC = () => {
   };
 
   const handleGpsSync = () => {
+    if (permissions?.geolocation === 'denied') {
+      showToast(
+        language === 'FR' 
+          ? "Géolocalisation désactivée (choix 'Ne pas autoriser'). Sélectionnez votre région manuellement." 
+          : "Geolocation access is disabled ('Do not allow' selected). Please select region manually.",
+        "info"
+      );
+      return;
+    }
+
     if (navigator.geolocation) {
       setLoadingAI(true);
       showToast(

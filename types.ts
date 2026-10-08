@@ -74,3 +74,13 @@ export interface Toast {
 }
 
 export type Language = 'FR' | 'EN';
+
+export type PermissionChoice = 'in_use' | 'once' | 'denied' | 'prompt';
+
+export interface AppPermissions {
+  geolocation: PermissionChoice;
+  camera: PermissionChoice;
+  microphone: PermissionChoice;
+}
+
+export type WatermarkMode = 'full' | 'subtle' | 'badge';

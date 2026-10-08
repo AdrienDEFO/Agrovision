@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { User, UserRole, Toast, Language } from './types';
+import { User, UserRole, Toast, Language, AppPermissions, PermissionChoice } from './types';
 import Onboarding from './components/Onboarding';
 import Layout from './components/Layout';
 import PlantScanner from './components/PlantScanner';
@@ -12,6 +12,7 @@ import History from './components/History';
 import LoadingScreen from './components/LoadingScreen';
 import ClimateCrops from './components/ClimateCrops';
 import PermissionsModal from './components/PermissionsModal';
+import DynamicWatermark from './components/DynamicWatermark';
 import { StorageService } from './services/storage';
 import { preloadAI } from './services/gemini';
 
@@ -27,6 +28,9 @@ interface AppContextType {
   setIsOffline: (offline: boolean) => void;
   activeTab: 'scan' | 'community' | 'inbox' | 'ai' | 'settings' | 'history' | 'climate';
   setActiveTab: (tab: 'scan' | 'community' | 'inbox' | 'ai' | 'settings' | 'history' | 'climate') => void;
+  permissions: AppPermissions;
+  setPermissions: React.Dispatch<React.SetStateAction<AppPermissions>>;
+  openPermissionsModal: () => void;
 }
 const AppContext = createContext<AppContextType | null>(null);
 export const useApp = () => useContext(AppContext)!;
@@ -41,18 +45,15 @@ const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'scan' | 'community' | 'inbox' | 'ai' | 'settings' | 'history' | 'climate'>('scan');
   const [isAppLoading, setIsAppLoading] = useState(true);
-  const [hasCheckedPermissions, setHasCheckedPermissions] = useState<boolean>(() => {
-    const saved = localStorage.getItem('agrovision_permanent_permissions');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.camera === 'granted' && parsed.geolocation === 'granted' && parsed.microphone === 'granted') {
-          return true;
-        }
-      } catch (e) {}
-    }
-    return false;
+  
+  // À chaque ouverture : demande systématique des autorisations
+  const [hasCheckedPermissions, setHasCheckedPermissions] = useState<boolean>(false);
+  const [permissions, setPermissions] = useState<AppPermissions>({
+    geolocation: 'prompt',
+    camera: 'prompt',
+    microphone: 'prompt'
   });
+
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [language, setLanguage] = useState<Language>(StorageService.getSettings().language);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -62,6 +63,22 @@ const App: React.FC = () => {
   const setIsOffline = (offline: boolean) => {
     setIsOfflineState(offline);
   };
+
+  const openPermissionsModal = () => {
+    setHasCheckedPermissions(false);
+  };
+
+  // Respect du mode "Uniquement lorsque l'application est utilisée" :
+  // Détecte le passage en arrière-plan pour suspendre les requêtes de position
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && permissions.geolocation === 'in_use') {
+        console.log("App en arrière-plan : suspension de la géolocalisation.");
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [permissions.geolocation]);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -162,10 +179,14 @@ const App: React.FC = () => {
 
   if (!hasCheckedPermissions) {
     return (
-      <AppContext.Provider value={{ showToast, language, setLanguage, deferredPrompt, showInstallBanner, setShowInstallBanner, installApp, isOffline, setIsOffline, activeTab, setActiveTab }}>
+      <AppContext.Provider value={{ showToast, language, setLanguage, deferredPrompt, showInstallBanner, setShowInstallBanner, installApp, isOffline, setIsOffline, activeTab, setActiveTab, permissions, setPermissions, openPermissionsModal }}>
         <div className="min-h-screen bg-slate-900 flex items-center justify-center relative max-w-md mx-auto">
           <PermissionsModal 
-            onComplete={() => setHasCheckedPermissions(true)}
+            onComplete={(newPerms) => {
+              setPermissions(newPerms);
+              setHasCheckedPermissions(true);
+            }}
+            initialPermissions={permissions}
             language={language}
           />
           <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs space-y-2 px-4 pointer-events-none">
@@ -186,9 +207,12 @@ const App: React.FC = () => {
   }
 
   return (
-    <AppContext.Provider value={{ showToast, language, setLanguage, deferredPrompt, showInstallBanner, setShowInstallBanner, installApp, isOffline, setIsOffline, activeTab, setActiveTab }}>
+    <AppContext.Provider value={{ showToast, language, setLanguage, deferredPrompt, showInstallBanner, setShowInstallBanner, installApp, isOffline, setIsOffline, activeTab, setActiveTab, permissions, setPermissions, openPermissionsModal }}>
       <div className="min-h-screen bg-slate-50 flex flex-col max-w-md mx-auto relative shadow-2xl border-x border-gray-200 overflow-hidden">
         
+        {/* Dynamic Watermark Overlay (Ange Adrien DEFO • Real-time Session & Live Stamp) */}
+        <DynamicWatermark onOpenPermissions={openPermissionsModal} />
+
         {isOffline && (
           <div className="bg-amber-500 text-white text-[10px] uppercase tracking-widest font-black py-2 px-4 flex items-center justify-between animate-in slide-in-from-top duration-300 z-50">
             <span className="flex items-center gap-1.5">

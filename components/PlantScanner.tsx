@@ -8,7 +8,7 @@ import { StorageService } from '../services/storage';
 const MAX_SIZE_MB = 10;
 
 const PlantScanner: React.FC = () => {
-  const { showToast, language, showInstallBanner, setShowInstallBanner, installApp } = useApp();
+  const { showToast, language, showInstallBanner, setShowInstallBanner, installApp, permissions } = useApp();
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [image, setImage] = useState<string | null>(null);
@@ -58,7 +58,21 @@ const PlantScanner: React.FC = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    if (navigator.geolocation) {
+    // Respect strict des autorisations choisies à chaque ouverture
+    if (permissions?.geolocation === 'denied') {
+      setCoords(undefined);
+      setWeather({
+        temp: 28,
+        humidity: 65,
+        condition: "Saison Agricole",
+        locationName: language === 'FR' ? 'Position Protégée (Non autorisée)' : 'Protected Location (Denied)'
+      });
+    } else if (navigator.geolocation && (permissions?.geolocation === 'in_use' || permissions?.geolocation === 'once' || permissions?.geolocation === 'prompt')) {
+      // Pour 'in_use', on ne relève que si l'application est active et au premier plan
+      if (permissions?.geolocation === 'in_use' && document.hidden) {
+        return;
+      }
+
       navigator.geolocation.getCurrentPosition(async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
@@ -80,7 +94,7 @@ const PlantScanner: React.FC = () => {
           console.error("Erreur météo:", err);
         }
       }, (err) => {
-        showToast("Géolocalisation refusée. Le diagnostic sera moins précis.", "info");
+        console.info("Géolocalisation non disponible:", err);
       });
     }
 
@@ -480,6 +494,25 @@ const PlantScanner: React.FC = () => {
         <div className="space-y-6 animate-in slide-in-from-bottom duration-500">
           <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white group">
             <img src={image} className="w-full h-80 object-cover" alt="Scan" />
+            
+            {/* Filigrane Dynamique Haute Définition sur la Photo */}
+            <div className="absolute bottom-2 left-2 right-2 bg-slate-950/80 backdrop-blur-md text-white rounded-xl py-1.5 px-3 border border-white/10 flex items-center justify-between text-[7.5px] font-mono pointer-events-none shadow-md z-10">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span className="font-black text-amber-300 tracking-wide flex items-center gap-1">
+                  <i className="fa-solid fa-clapperboard text-[7px]"></i>
+                  RÉALISÉ PAR ANGE ADRIEN DEFO
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-slate-300 text-[7px]">
+                <span className="hidden xs:inline">AGROVISION AI</span>
+                <span>•</span>
+                <span className={coords ? "text-emerald-300 font-bold" : "text-amber-300 font-bold"}>
+                  {coords ? `GPS: ${coords.lat.toFixed(2)}, ${coords.lng.toFixed(2)}` : (permissions?.geolocation === 'denied' ? 'GPS: PROTÉGÉ' : 'GPS: LOCAL')}
+                </span>
+              </div>
+            </div>
+
             {loading && (
               <div className="absolute inset-0 bg-emerald-900/85 backdrop-blur-sm flex flex-col items-center justify-center text-white p-8">
                 <div className="w-16 h-16 border-4 border-emerald-400/20 border-t-emerald-400 rounded-full animate-spin mb-6"></div>
